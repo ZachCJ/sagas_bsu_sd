@@ -22,7 +22,8 @@
     "storage:down": "docker compose stop minio",
     "storage:verify": "bash ../../scripts/verify-storage.sh",
     "storage:reset": "bash ../../scripts/reset-volume.sh minio minio-data",
-    "storage:mc": "docker compose --profile tools run --rm mc"
+    "storage:mc": "docker compose --profile tools run --rm mc",
+    "test": "vitest"
   },
   "dependencies": {
     "@sagas/contracts": "workspace:*",
@@ -40,7 +41,8 @@
     "eslint": "catalog:",
     "prettier": "catalog:",
     "tsx": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "prettier": "@sagas/prettier-config"
 }
