@@ -6,8 +6,8 @@
 // Second note: This test is an example test that uses Typescript found on the website 
 // https://www.testim.io/blog/typescript-unit-testing-101/
 function add(numbers: string): number {
-    let integers = numbers.split(',').map(x => parseInt(x));
-    let negatives = integers.filter(x => x < 0);
+    const integers = numbers.split(',').map(x => parseInt(x));
+    const negatives = integers.filter(x => x < 0);
 
     if (negatives.length > 0)
         throw new RangeError('Negatives are not allowed: ' + negatives.join(', '));

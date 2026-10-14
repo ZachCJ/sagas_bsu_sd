@@ -25,16 +25,34 @@
  *       "createdAt": "2026-09-07T12:00:00Z"
  *     }'
  */
-import express from 'express';
-import { sourceRecord } from '@sagas/contracts';
-import { pool } from './db';
+import express from "express";
+
+//import { sourceRecord } from "@sagas/contracts";
+//import { pool } from "./db";
+
+/**
+ * Initializing routing bases for sections of the API.
+ */
+import { recordsRouter } from "./api-routes/records";
+import { sitesRouter } from "./api-routes/sites";
+import { mapRouter } from "./api-routes/map";
 
 const app = express();
 
 // Without this, req.body is undefined and it is not obvious why.
 app.use(express.json());
 
-app.get('/health', (_req, res) => {
+/**
+ * API routes for sections of the API. Each section has its own file for organization and maintainability.
+ */
+app.use("/records", recordsRouter);
+app.use("/sites", sitesRouter);
+app.use("/map", mapRouter);
+
+/**
+ * Checks whether the API is up and running from the root of the API.
+ */
+app.get("/health", (_req, res) => {
   res.json({ ok: true });
 });
 
@@ -55,6 +73,8 @@ app.get('/health', (_req, res) => {
  * `createdAt`, which a real system would probably generate here instead. That
  * is a genuine design question and it is yours.
  */
+
+/*
 app.post('/records', async (req, res) => {
   const parsed = sourceRecord.safeParse(req.body);
 
@@ -85,6 +105,7 @@ app.post('/records', async (req, res) => {
 
   res.status(201).json(rows[0] ?? null);
 });
+*/
 
 /**
  * Anything a handler throws lands here.
@@ -94,10 +115,17 @@ app.post('/records', async (req, res) => {
  * the request forever with no error anywhere. That difference is most of why
  * this project is on 5.
  */
-app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  console.error(err);
-  res.status(500).json({ error: 'Something failed on the server.' });
-});
+app.use(
+  (
+    err: Error,
+    _req: express.Request,
+    res: express.Response,
+    _next: express.NextFunction,
+  ) => {
+    console.error(err);
+    res.status(500).json({ error: "Something failed on the server." });
+  },
+);
 
 const port = Number(process.env.PORT ?? 3001);
 app.listen(port, () => {
