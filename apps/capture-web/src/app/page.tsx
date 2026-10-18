@@ -73,7 +73,7 @@ export default function Page() {
     try {
       setMessage("Submitting...");
 
-      const response = await fetch("http://localhost:3001/records", {
+      const response = await fetch("/api/records", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
