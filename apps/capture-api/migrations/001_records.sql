@@ -9,7 +9,7 @@
 
 create table if not exists records (
   -- bigint is a 64 bit integer which can be represented as a string for ZOD and typescript
-  id              bigint generated always as identity primary key,
+  id              bigint primary key, -- generated always as identity primary key,
   site_id         text not null,
   contributor_id  text not null,
 
@@ -47,7 +47,6 @@ create table if not exists written_records (
   -- For our current iteration, store the written record as a text string. 
   -- This will likely change in the future with file upload, and ones written in the browser will be stored as a txt.
   file_data text not null 
-
 );
 
 -- Enum for image file types. Will help with assembly of files after transfer.

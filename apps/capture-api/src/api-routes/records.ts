@@ -1,7 +1,8 @@
 import express from "express";
 
 const recordsRouter = express.Router();
-//import db from "../db"; TODO: Uncomment when first database call is used. 
+import { sourceRecord } from "@sagas/contracts";
+import { pool } from "../db";
 
 //Subroutes of Records API
 import { recordsVideoRouter } from "./records-video";
@@ -31,7 +32,37 @@ recordsRouter.get("/health", (_req, res) => {
 //  HTTP POST Requests    //
 ////////////////////////////
 
+recordsRouter.post('/', async (req, res) => {
+  const parsed = sourceRecord.safeParse(req.body);
+  //Change to have postgres manage the ID values, the site_id and contributor_id will need to be passed via query params or headers.
 
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.flatten() });
+    return;
+  }
+
+  const record = parsed.data;
+
+  const { rows } = await pool.query(
+    `insert into records
+       (id, site_id, contributor_id, note, "text", language, captured_at, submission, created_at)
+     values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+     returning *`,
+    [
+      record.id,
+      record.siteId,
+      record.contributorId,
+      record.note ?? null,
+      record.text ?? null,
+      record.language ?? null,
+      record.capturedAt ?? null,
+      record.submission,
+      record.createdAt,
+    ],
+  );
+
+  res.status(201).json(rows[0] ?? null);
+});
 
 ////////////////////////////
 //  HTTP PUT Requests     //

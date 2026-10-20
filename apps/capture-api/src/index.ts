@@ -73,38 +73,8 @@ app.get("/health", (_req, res) => {
  * `createdAt`, which a real system would probably generate here instead. That
  * is a genuine design question and it is yours.
  */
-
 /*
-app.post('/records', async (req, res) => {
-  const parsed = sourceRecord.safeParse(req.body);
 
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.flatten() });
-    return;
-  }
-
-  const record = parsed.data;
-
-  const { rows } = await pool.query(
-    `insert into records
-       (id, site_id, contributor_id, note, "text", language, captured_at, submission, created_at)
-     values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-     returning *`,
-    [
-      record.id,
-      record.siteId,
-      record.contributorId,
-      record.note ?? null,
-      record.text ?? null,
-      record.language ?? null,
-      record.capturedAt ?? null,
-      record.submission,
-      record.createdAt,
-    ],
-  );
-
-  res.status(201).json(rows[0] ?? null);
-});
 */
 
 /**
