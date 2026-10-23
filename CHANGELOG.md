@@ -41,6 +41,189 @@ it. This is the most useful field in the entry.
 
 ---
 
+## 2026-10-22 — new design questions: links, collections, relevance and disputes
+
+**Affects:** intelligence layer · content layer · experience layer (nothing to do)
+
+**What:** `docs/DESIGN-QUESTIONS.md` has two new questions, each with a
+placeholder test. "How does a link become evidence?" says a link to a web page
+is one kind of evidence, weighed by what's recorded about it and by
+independent people relying on it, never by its domain. Its shape and whether
+the page gets captured are open. The placeholder is in
+`packages/fixtures/scoring/rules.ts`. "What does a collection carry?" says the
+records one profile hands over together stay together, attributed to the
+profile and never to a named person. What else a collection carries is open.
+The placeholder is in `packages/fixtures/capture/rules.ts`. Neither is in the
+contract yet. Two more questions have placeholders in the scoring rules: "How
+do you tell whether a reply is about what it targets?", which explains why
+matching text doesn't work for relevance, and "Do all disagreements matter
+equally?". "Can someone take their record back?" now says what's decided:
+taking a record back means changing its privacy setting, and what happens to
+claims built on it stays open. None of these is in the contract yet.
+
+**Why:** An archivist told us provenance is what matters most when records
+are gathered from many places, and the intelligence layer's design asked how
+web sources should count.
+
+**You need to:**
+- *intelligence layer* — don't rank sources by domain. The link placeholder
+  says what to build toward once links have a shape.
+- *content layer* — nothing yet. Collections will reach the contract in a
+  later release.
+- *experience layer* — nothing.
+
+---
+
+## 2026-10-19 — a first task in the intelligence layer's guide
+
+**Affects:** intelligence layer · experience and content layers (nothing to do)
+
+**What:** `docs/PHASE-2-INTELLIGENCE-LAYER.md` has a step 0 before the list of
+subproblems. Each person builds the corner shop as a scoring graph with the
+builder in `packages/fixtures/scoring`, deciding for each step what the record
+is, who handed it over, and what each claim points at. The first milestone
+now names the eight tests a thin frame has to pass.
+
+**Why:** The scoring graph shows a record only as an id, a kind, a contributor
+and a time, so working in it alone never shows what a record is or how claims
+attach to one. The corner shop shows both.
+
+**You need to:**
+- *intelligence layer* — nothing required. Step 0 is optional, for anyone
+  who wants a quick way into the model.
+- *experience layer, content layer* — nothing.
+
+---
+
+## v2.3.0 — 2026-10-19
+
+**Affects:** experience layer · intelligence layer · content layer (nothing to do)
+
+**What:** Four corrections so the contract matches the decided model.
+- A dispute is a claim. Each dispute has its own claim, in the same
+  conversation as the claim it disputes. `disputeEdge.fromClaimId` points from
+  that claim, and the claim carries `disputedClaimId`. The reasoning and the
+  proposed value stay on the edge.
+- Extensions target a detail. `extensionEdge.targetDetailId` names the detail
+  an extension adds to, or is empty when it's about the whole claim. Each
+  `detailStatus` now lists `extensions` beside `disputes`.
+- `topics` is gone from claims.
+- `affirmation` is gone. Agreement is a `sounds_right` passover, so
+  `claimState.affirmations` is gone too (use `claimState.passover.sounds_right`)
+  and `contributorStanding.affirmationsGiven` is now `soundsRightGiven`.
+
+The fixtures are rebuilt: every dispute in them now has a claim, and the
+corner shop's "Mr. Ferris was my uncle" extension targets the owner detail.
+Two numbers move as a result. Weights shift slightly where a claim already had
+"sounds right" passovers, since those now count as agreement. And a profile's
+`lastContributionAt` now counts every passover it left, of any kind.
+Dispute claims are counted in `disputesRaised`, never in `claimsAuthored`.
+
+**Why:** All four were decided between 27 September and 16 October and never
+reached the contract, so anyone designing a schema now would have built the
+old shapes.
+
+**You need to:**
+- *experience layer* — for your schema: a dispute is a row in claims (with
+  `disputedClaimId` set) plus a dispute edge pointing from it
+  (`fromClaimId`), and the edge is the real record of what it targets;
+  `targetDetailId` on extensions is a nullable column; there is no
+  affirmations table, agreement is a `sounds_right` passover; the profile
+  field is now `soundsRightGiven`; claims have no `topics`. In the app: dispute
+  claims are now in `state.claims`, so leave out the ones with
+  `disputedClaimId` from top-level lists (`apps/web/src/app/page.tsx` and
+  `features/article/ArticleView.tsx` do this upstream) and show them under the
+  detail they dispute; replace `affirmations` with `passover.sounds_right`;
+  each `detailStatus` now has `extensions` as well as `disputes`.
+- *intelligence layer* — nothing in `apps/graph-api` changes; the scoring
+  graph in `packages/fixtures/scoring` already had these shapes.
+- *content layer* — nothing.
+
+---
+
+## 2026-10-18 — a phase 2 guide and API guidelines for the content layer
+
+**Affects:** content layer · experience and intelligence layers (nothing to do)
+
+**What:** `docs/PHASE-2-CONTENT-LAYER.md` is new: running the layer,
+migrations, adding an endpoint, the record as it stands after 2.2.0, uploads,
+and what's expected this phase. `packages/fixtures/capture/rules.ts` holds
+guidelines for the content layer's API, written as tests that run against the
+API over HTTP: records in and out, a 404, and the 400s, plus placeholders for
+uploads, storage and media with hints about the libraries this project
+expects. `apps/capture-api/src/capture.test.ts` runs them when
+`CAPTURE_API_URL` is set. The worked `POST /records` now validates with
+`newSourceRecord`, makes the id on the server, and sends back a record in the
+contract's shape rather than the raw database row. The start guide and the
+app README no longer give claim writing to this layer.
+
+**Why:** The content layer is moving from text records to photos and
+recordings, and the guidance was spread across the README, the start guide
+and several emails.
+
+**You need to:**
+- *content layer* — pull, read the guide, and run the guidelines against your
+  API.
+- *experience layer, intelligence layer* — nothing.
+
+---
+
+## v2.2.0 — 2026-10-18
+
+**Affects:** content layer · experience layer and intelligence layer (nothing to do yet)
+
+**What:** One record is one artifact. `media` stays a list, for the parts of
+one artifact such as the pages of a scanned letter, and every file in it must
+be the same kind. A photograph and a recording describing it are two records.
+The comment on `sourceRecord` that called a record a bundle is rewritten.
+`newSourceRecord` is new: a record as it arrives, without an `id`, so whoever
+stores it can generate the id.
+
+**Why:** The content layer's schema already modelled one record per artifact,
+which turned out to be the model; the contract still described a bundle. And
+the contract required the client to send an id while a database that
+generates ids refuses one from outside, so every version of a record upload
+hit one of the two.
+
+**You need to:**
+- *content layer* — validate incoming records with `newSourceRecord` rather
+  than `sourceRecord`, and let your database generate the id. Records with
+  files of different kinds now fail validation.
+- *experience layer, intelligence layer* — nothing. No fixture changed.
+
+---
+
+## 2026-10-15 — scoring rules on the graph, and a server for the intelligence layer
+
+**Affects:** intelligence layer · content and experience layers (nothing to do)
+
+**What:** `packages/fixtures/scoring` is new. The scorer now reads the graph
+for one place (records, claims with their details, the edges people drew
+between claims, passovers, profiles) and returns a score for every claim and
+every detail, with the terms each score is made of. `rules.ts` holds the rules
+a scorer answers to, written mostly as comparisons between graphs rather than fixed
+scores, with open questions as placeholders that carry their context. A focus
+summary at the end of each run shows which areas of the rules are thin.
+`apps/graph-api` gets a scorer stub, a rewritten test file, and a working `POST /score`
+endpoint with an example graph. `docs/PHASE-2-INTELLIGENCE-LAYER.md` is new: the
+guide for the build phase, with the model in one place. The count-based rules in
+`packages/fixtures/behaviour` are being retired; several no longer match the
+model.
+
+**Why:** A list of counts can't say which detail a dispute landed on, whether
+two claims came from the same record, or who brought what, and those are most
+of what scoring is about. The old rules also called agreement "support" in
+places. The graph shape uses two decisions not yet in the contract: a dispute
+is a claim, and an extension targets a detail.
+
+**You need to:**
+- *intelligence layer* — pull, read `docs/PHASE-2-INTELLIGENCE-LAYER.md`, then
+  start in `apps/graph-api/src/scorer.ts`. Delete the `.skip` in
+  `src/scorer.test.ts` once `similarity` exists.
+- *content layer, experience layer* — nothing.
+
+---
+
 ## 2026-10-11 — how the experience layer works, and where it deploys
 
 **Affects:** experience layer · all layers (one line in the Git guide)

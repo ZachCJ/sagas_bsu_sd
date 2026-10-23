@@ -1,4 +1,9 @@
 /**
+ * Being retired. The rules the intelligence layer's scorer answers to are in
+ * `../scoring/rules.ts`, and they read the graph instead of a list of counts.
+ * This file stays only to check the placeholder in `src/weight.ts`, and several
+ * of its rules no longer match the model.
+ *
  * The rules any scoring implementation has to obey.
  *
  * `src/weight.ts` is a placeholder and it gets deleted. This file is what
@@ -254,7 +259,7 @@ export function runScoringRules(name: string, scorer: Scorer): void {
         input: {
           sourceType: c.claim.sourceType,
           independentRecordCount: c.independentRecordCount,
-          affirmationCount: c.affirmations.length,
+          affirmationCount: c.passover.sounds_right,
           extensionCount: c.extensions.length,
           disputeCount: c.detailStatuses.reduce((n, e) => n + e.disputes.length, 0),
           sourceTypeDiversity: 1,

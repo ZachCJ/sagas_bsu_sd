@@ -82,6 +82,9 @@ importers:
       '@sagas/eslint-config':
         specifier: workspace:*
         version: link:../../tooling/eslint
+      '@sagas/fixtures':
+        specifier: workspace:*
+        version: link:../../packages/fixtures
       '@sagas/prettier-config':
         specifier: workspace:*
         version: link:../../tooling/prettier
@@ -118,15 +121,6 @@ importers:
       '@sagas/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
-      next:
-        specifier: ^15.1.6
-        version: 15.5.23(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
-      react:
-        specifier: catalog:react19
-        version: 19.0.0
-      react-dom:
-        specifier: catalog:react19
-        version: 19.0.0(react@19.0.0)
     devDependencies:
       '@sagas/eslint-config':
         specifier: workspace:*
@@ -140,12 +134,6 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 22.20.1
-      '@types/react':
-        specifier: catalog:react19
-        version: 19.2.18
-      '@types/react-dom':
-        specifier: catalog:react19
-        version: 19.2.4(@types/react@19.2.18)
       eslint:
         specifier: 'catalog:'
         version: 9.39.5(jiti@1.21.7)
@@ -164,6 +152,12 @@ importers:
       '@sagas/fixtures':
         specifier: workspace:*
         version: link:../../packages/fixtures
+      express:
+        specifier: ^5.1.0
+        version: 5.2.1
+      zod:
+        specifier: 'catalog:'
+        version: 3.25.76
     devDependencies:
       '@sagas/eslint-config':
         specifier: workspace:*
@@ -174,6 +168,9 @@ importers:
       '@sagas/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/typescript
+      '@types/express':
+        specifier: ^5.0.0
+        version: 5.0.6
       '@types/node':
         specifier: 'catalog:'
         version: 22.20.1
@@ -183,6 +180,9 @@ importers:
       prettier:
         specifier: 'catalog:'
         version: 3.9.6
+      tsx:
+        specifier: 'catalog:'
+        version: 4.23.12
       typescript:
         specifier: 'catalog:'
         version: 5.9.3
@@ -312,6 +312,9 @@ importers:
       '@sagas/contracts':
         specifier: workspace:*
         version: link:../contracts
+      zod:
+        specifier: 'catalog:'
+        version: 3.25.76
     devDependencies:
       '@sagas/eslint-config':
         specifier: workspace:*

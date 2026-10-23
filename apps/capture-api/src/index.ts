@@ -57,27 +57,6 @@ app.get("/health", (_req, res) => {
 });
 
 /**
- * Submit a record.
- *
- * Three steps, and they are the three steps in every endpoint you will write.
- *
- * 1. Validate against the contract. `safeParse` returns a result rather than
- *    throwing, so the failure path is ordinary code. Never trust a request body.
- * 2. Write it, using $1 $2 $3 placeholders. The values go to Postgres
- *    separately from the query text, so nothing a person typed is ever read as
- *    SQL. Do not build a query by joining strings, ever, even when it looks
- *    harmless. This is the one rule in this file that is not a preference.
- * 3. Return what was stored, with 201 because something was created.
- *
- * Note what this does not decide. The client is sending its own `id` and
- * `createdAt`, which a real system would probably generate here instead. That
- * is a genuine design question and it is yours.
- */
-/*
-
-*/
-
-/**
  * Anything a handler throws lands here.
  *
  * Express 5 forwards a rejected promise from an async handler to this
@@ -85,17 +64,11 @@ app.get("/health", (_req, res) => {
  * the request forever with no error anywhere. That difference is most of why
  * this project is on 5.
  */
-app.use(
-  (
-    err: Error,
-    _req: express.Request,
-    res: express.Response,
-    _next: express.NextFunction,
-  ) => {
-    console.error(err);
-    res.status(500).json({ error: "Something failed on the server." });
-  },
-);
+
+app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  console.error(err);
+  res.status(500).json({ error: 'Something failed on the server.' });
+});
 
 const port = Number(process.env.PORT ?? 3001);
 app.listen(port, () => {

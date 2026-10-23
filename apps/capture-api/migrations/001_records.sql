@@ -8,8 +8,7 @@
 -- When the contract and this table disagree, the contract is right.
 
 create table if not exists records (
-  -- bigint is a 64 bit integer which can be represented as a string for ZOD and typescript
-  id              bigint primary key, -- generated always as identity primary key,
+  id              text primary key, -- generated always as identity primary key,
   site_id         text not null,
   contributor_id  text not null,
 
