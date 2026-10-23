@@ -18,6 +18,7 @@ next-env.d.ts
 # testing
 coverage
 **/test-results/
+.vitest/
 
 # env
 .env

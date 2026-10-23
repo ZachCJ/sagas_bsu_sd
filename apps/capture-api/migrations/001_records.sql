@@ -8,7 +8,7 @@
 -- When the contract and this table disagree, the contract is right.
 
 create table if not exists records (
-  -- bigint is a 64 bit integer which can be represented as a string for ZOD and typescript
+  id              text primary key, -- generated always as identity primary key,
   site_id         text not null,
   contributor_id  text not null,
 
@@ -83,4 +83,3 @@ create table if not exists video_records (
   content_type video_record_type not null,
   original_filename text not null
 );
-  id              text primary key,
