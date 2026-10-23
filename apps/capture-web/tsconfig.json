@@ -1,5 +1,16 @@
 {
+  //inherits settings from shared configuration at @sagas/tsconfig/base.json
   "extends": "@sagas/tsconfig/base.json",
-  "include": ["src"],
+
+  //Controls how typescript checks and hanldes code
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "lib": ["ES2022", "DOM", "DOM.Iterable"]
+  },
+  "include": ["**/*.ts", "**/*.tsx", "src"],
   "exclude": ["node_modules"]
 }

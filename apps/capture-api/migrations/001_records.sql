@@ -8,7 +8,7 @@
 -- When the contract and this table disagree, the contract is right.
 
 create table if not exists records (
-  id              text primary key,
+  -- bigint is a 64 bit integer which can be represented as a string for ZOD and typescript
   site_id         text not null,
   contributor_id  text not null,
 
@@ -28,3 +28,59 @@ create table if not exists records (
 -- Most reads will be "everything at this place". Worth an index from the start
 -- because it costs nothing now and is invisible to add later.
 create index if not exists records_site_id_idx on records (site_id);
+
+-- Note for all the enums the types: these are temporary, and can be added to and changed as needed.
+-- For all the record variants they model the mediaRef from packages/contracts/src/model.ts.
+
+-- Enum for written file types. Will help with assembly of files after transfer.
+create type written_record_type as enum (
+  'txt',
+  'md',
+  'docx'
+);
+
+create table if not exists written_records (
+  record_id bigint primary key references records(id) on delete cascade,
+  content_type written_record_type not null,
+  --original_filename text not null,
+  -- For our current iteration, store the written record as a text string. 
+  -- This will likely change in the future with file upload, and ones written in the browser will be stored as a txt.
+  file_data text not null 
+);
+
+-- Enum for image file types. Will help with assembly of files after transfer.
+create type image_record_type as enum (
+  'jpeg',
+  'png'
+);
+
+create table if not exists image_records (
+  record_id bigint primary key references records(id) on delete cascade,
+  content_type image_record_type not null,
+  original_filename text not null
+);
+
+-- Enum for audio file types. Will help with assembly of files after transfer.
+create type audio_record_type as enum (
+  'wav',
+  'mp3'
+);
+
+create table if not exists audio_records (
+  record_id bigint primary key references records(id) on delete cascade,
+  content_type audio_record_type not null,
+  original_filename text not null
+);
+
+-- Enum for video file types. Will help with assembly of files after transfer.
+create type video_record_type as enum (
+  'mp4',
+  'mov'
+);
+
+create table if not exists video_records (
+  record_id bigint primary key references records(id) on delete cascade,
+  content_type video_record_type not null,
+  original_filename text not null
+);
+  id              text primary key,

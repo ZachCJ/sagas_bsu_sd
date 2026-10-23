@@ -10,7 +10,6 @@
     "clean": "git clean -xdf .cache .turbo node_modules",
     "typecheck": "tsc --noEmit",
     "lint": "eslint",
-    "test": "vitest run",
     "dev": "tsx watch src/index.ts",
     "start": "tsx src/index.ts",
     "migrate": "tsx scripts/migrate.ts",
@@ -23,7 +22,8 @@
     "storage:down": "docker compose stop minio",
     "storage:verify": "bash ../../scripts/verify-storage.sh",
     "storage:reset": "bash ../../scripts/reset-volume.sh minio minio-data",
-    "storage:mc": "docker compose --profile tools run --rm mc"
+    "storage:mc": "docker compose --profile tools run --rm mc",
+    "test": "vitest"
   },
   "dependencies": {
     "@sagas/contracts": "workspace:*",
@@ -42,8 +42,7 @@
     "prettier": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",
-    "vitest": "catalog:",
-    "@sagas/fixtures": "workspace:*"
+    "vitest": "catalog:"
   },
   "prettier": "@sagas/prettier-config"
 }
