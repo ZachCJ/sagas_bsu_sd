@@ -1,5 +1,8 @@
 import express from "express";
 
+//import { mediaRef } from "@sagas/contracts";
+//import { pool } from "./db";
+
 // Exported as recordsAudioRouter.
 const router = express.Router();
 //import db from "../db"; TODO: Uncomment when first database call is used. 
