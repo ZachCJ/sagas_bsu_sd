@@ -33,6 +33,7 @@
   },
   "devDependencies": {
     "@sagas/eslint-config": "workspace:*",
+    "@sagas/fixtures": "workspace:*",
     "@sagas/prettier-config": "workspace:*",
     "@sagas/tsconfig": "workspace:*",
     "@types/express": "^5.0.0",
