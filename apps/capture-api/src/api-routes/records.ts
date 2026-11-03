@@ -29,6 +29,39 @@ recordsRouter.get("/health", (_req, res) => {
   res.json({ ok: true });
 });
 
+recordsRouter.get("/", async (req, res) => {
+  const { id } = req.query;
+
+  if (typeof id !== "string" || !/^\d+$/.test(id)) {
+    res.status(400).json({ error: "A numeric record id query parameter is required." });
+    return;
+  }
+
+  const { rows } = await pool.query(
+    `select records.id,
+            records.site_id,
+            records.contributor_id,
+            records.note,
+            coalesce(records."text", written_records.file_data) as "text",
+            records.language,
+            records.captured_at,
+            records.submission,
+            records.created_at
+       from records
+       left join written_records on written_records.record_id = records.id
+      where records.id = $1`, //Note to self (Westley): I probably need to change this '$1'. It's most likely a placeholder
+      [id],
+  );
+
+  if (rows.length === 0) {
+    res.status(404).json({ error: "Record not found." });
+    return;
+  }
+
+  res.json(rows[0]);
+  res.status(200).json(rows[0] ? toRecord(rows[0]) : null);
+});
+
 ////////////////////////////
 //  HTTP POST Requests    //
 ////////////////////////////
