@@ -59,61 +59,6 @@ app.get("/health", (_req, res) => {
 });
 
 /**
- * Submit a record.
- *
- * Three steps, and they are the three steps in every endpoint you will write.
- *
- * 1. Validate against the contract. `newSourceRecord` is a record as it
- *    arrives, without an id. `safeParse` returns a result rather than
- *    throwing, so the failure path is ordinary code. Never trust a request body.
- * 2. Write it, using $1 $2 $3 placeholders. The values go to Postgres
- *    separately from the query text, so nothing a person typed is ever read as
- *    SQL. Do not build a query by joining strings, ever, even when it looks
- *    harmless. This is the one rule in this file that is not a preference.
- * 3. Return what was stored, with 201 because something was created.
- *
- * The database makes the id, as a UUID (012_uuid_ids.sql), because whoever
- * stores a record decides its id. So the insert leaves `id` out and reads it
- * back from `returning`. The client still sends `createdAt`; whether the server
- * should set that as well is a design question, and it's yours.
- */
-app.post('/records', async (req, res) => {
-  const parsed = newSourceRecord.safeParse(req.body);
-
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.flatten() });
-    return;
-  }
-
-  const record = parsed.data;
-
-  const { rows } = await pool.query<Record<string, unknown>>(
-    `insert into records
-       (site_id, contributor_id, note, "text", language, captured_at, submission,
-        choices, terms_version, link, parent, collection_id, created_at)
-     values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-     returning *`,
-    [
-      record.siteId,
-      record.contributorId,
-      record.note ?? null,
-      record.text ?? null,
-      record.language ?? null,
-      record.capturedAt ?? null,
-      record.submission,
-      record.choices,
-      record.termsVersion,
-      record.link ?? null,
-      record.parent ?? null,
-      record.collectionId ?? null,
-      record.createdAt,
-    ],
-  );
-
-  res.status(201).json(rows[0] ? toRecord(rows[0]) : null);
-});
-
-/**
  * A database row back into the contract's shape.
  *
  * Postgres hands back `site_id`, nulls and dates as Date objects. The contract
