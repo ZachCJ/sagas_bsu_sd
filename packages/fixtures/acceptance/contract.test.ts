@@ -13,7 +13,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { graphState } from '@sagas/contracts';
+import { contests, graphState } from '@sagas/contracts';
 import { ACCEPTANCE_CRITERIA, loadAllStates, loadSiteState } from './index';
 
 const states = loadAllStates();
@@ -46,26 +46,40 @@ describe('fixtures satisfy the contract', () => {
     }
   });
 
+  it('a detail is words that appear in the claim it belongs to', () => {
+    for (const state of states) {
+      for (const c of state.claims) {
+        for (const es of c.detailStatuses) {
+          const { start, end, text } = es.detail.excerpt;
+          expect(c.claim.text.slice(start, end), `"${text}" isn't in ${c.claim.id}`).toBe(text);
+        }
+      }
+    }
+  });
+
   it('a dispute targets a detail that exists on the claim it targets', () => {
     for (const state of states) {
       for (const c of state.claims) {
-        const detailIds = new Set(c.claim.details.map((e) => e.id));
         for (const es of c.detailStatuses) {
           for (const d of es.disputes) {
-            expect(d.targetClaimId).toBe(c.claim.id);
-            expect(detailIds.has(d.targetDetailId)).toBe(true);
+            const dispute = state.claims.find((x) => x.claim.id === d.claimId)?.claim;
+            expect(dispute?.target.claimId).toBe(c.claim.id);
+            expect(dispute?.relation).toBe('dispute');
+            expect(contests(dispute!, es.detail.excerpt)).toBe(true);
           }
         }
       }
     }
   });
 
-  it('claims awaiting translation keep their original and carry no weight', () => {
+  it('claims awaiting translation keep their original, and their content terms wait', () => {
     for (const state of states) {
       for (const c of state.claims.filter((c) => c.claim.awaitingTranslation)) {
         expect(c.claim.sourceLanguageText).toBeTruthy();
         expect(c.claim.sourceLanguage).not.toBe('en');
-        expect(c.weight).toBe(0);
+        // What depends on the claim's own content isn't counted until it's
+        // rendered. What it gets from evidence and behavior still counts.
+        expect(c.score.terms.some((t) => t.name === 'extensions')).toBe(false);
       }
     }
   });
@@ -80,6 +94,7 @@ describe('acceptance criteria point at data that exhibits them', () => {
       const subject =
         state.claims.find((cl) => cl.claim.id === c.subject) ??
         state.records.find((r) => r.id === c.subject) ??
+        state.collections.find((col) => col.id === c.subject) ??
         state.contributors.find((p) => p.id === c.subject);
       expect(subject, `${c.subject} not present in ${c.site} ${c.stateId}`).toBeTruthy();
     }
@@ -109,10 +124,10 @@ describe('acceptance criteria point at data that exhibits them', () => {
     }
   });
 
-  it('a record carries media or text, never a note on its own', () => {
+  it('a record carries media, text or a link, never a note on its own', () => {
     for (const state of states) {
       for (const r of state.records) {
-        expect(r.media.length > 0 || Boolean(r.text?.trim()), `${r.id} has neither`).toBe(true);
+        expect(r.media.length > 0 || Boolean(r.text?.trim()) || r.link !== undefined, `${r.id} has none`).toBe(true);
       }
     }
   });

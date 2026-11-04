@@ -8,15 +8,14 @@
  *
  * ---
  *
- * These shapes are deliberately flat and repetitive. Look at the two edge
- * types below: each starts with an id, a contributor, and a timestamp, and
- * nothing captures that. `translationDispute` and `disputeEdge` are the same
- * idea applied to different targets, and nothing captures that either.
+ * These shapes are deliberately flat and repetitive. `translationDispute` and a
+ * claim that disputes another claim are the same idea applied to different
+ * targets, and nothing captures that.
  *
  * It's written out longhand so you can read the whole thing without decoding
  * an inheritance chain, and so the patterns are yours to find rather than ours
- * to impose. Finding them is part of the job. A pull request that collapses the
- * edge types into one, with a reason, is exactly the kind of contribution we want.
+ * to impose. Finding them is part of the job. A pull request that collapses those
+ * two into one, with a reason, is exactly the kind of contribution we want.
  *
  * `docs/DESIGN-QUESTIONS.md` lists the ones we already know about, along with
  * the arguments on each side. Start there before you refactor anything, and add
@@ -26,14 +25,13 @@
  *
  * HOW TO FIND YOUR PART
  *
- * Sections are banner-commented and labelled. Search for the label.
+ * Sections are banner-commented and labeled. Search for the label.
  *
  *   SHARED · Identifiers          ids, all of them plain strings for now
  *   SHARED · Vocabularies         the fixed lists: languages, source types
  *   SHARED · Places and people    sites and contributors
  *   CONTENT LAYER · Records       what people hand over, and their files
- *   SHARED · Claims               somebody's reading of a record
- *   SHARED · Edges                disputes and extensions
+ *   SHARED · Claims               what people say, and what they point at
  *   SHARED · Signals              low-effort reactions
  *   CALCULATED                    what a consumer actually receives
  *
@@ -84,10 +82,9 @@ export type FlagId = string;
  *   es  Spanish
  *   fr  French
  *
- * Spanish and French are both here because the Basque Country spans the border
- * between Spain and France. Expect this list to grow. A
- * record in a language not listed is a reason to add one, never a reason to
- * turn the record away.
+ * These four are where the list started, not a statement about which
+ * communities matter. Expect it to grow. A record in a language not listed is a
+ * reason to add one, never a reason to turn the record away.
  */
 export const languageCode = z.enum(['en', 'eu', 'es', 'fr']);
 export type LanguageCode = z.infer<typeof languageCode>;
@@ -103,10 +100,11 @@ export type LanguageCode = z.infer<typeof languageCode>;
  *   academic       published scholarship
  *   institutional  held by a museum or archive
  *
- * This is never used to reject a contribution. It feeds into how much weight a
- * claim carries, and even then only as one input among several. A firsthand
- * claim from someone nobody knows can end up better supported than a
- * published paper.
+ * This is never used to reject a contribution, and it is not a ranking. A tier
+ * list of source types ("documentary beats oral") is not how a claim is
+ * weighed. Weight comes from evidence and from independent support. A firsthand
+ * claim from someone nobody knows can end up better supported than a published
+ * paper.
  */
 
 export const sourceType = z.enum([
@@ -127,7 +125,7 @@ export type SourceType = z.infer<typeof sourceType>;
  *   dont_know     outside what this person can judge
  *   dont_care     not what this person is here for
  *
- * These tune what gets shown to whom. They don't create edges, and they are
+ * These tune what gets shown to whom. They don't reply to anything, and they are
  * not votes. `sounds_right` is agreement, and adds a negligible amount of
  * weight. A claim covered in `dont_know` isn't doubted, it just hasn't reached
  * anyone able to speak to it.
@@ -135,7 +133,11 @@ export type SourceType = z.infer<typeof sourceType>;
 export const passoverKind = z.enum(['sounds_right', 'dont_know', 'dont_care']);
 export type PassoverKind = z.infer<typeof passoverKind>;
 
-/** How well-supported a claim is, as a label the interface can show. */
+/**
+ * A coarse label for how well-supported a claim is, worked out from its
+ * support. Scoring isn't shown to readers as a number or a rank; whether this
+ * label is shown, and whether it stays at all, is open.
+ */
 export const confidence = z.enum([
   'single_source',
   'corroborated',
@@ -144,10 +146,6 @@ export const confidence = z.enum([
 ]);
 export type Confidence = z.infer<typeof confidence>;
 
-/** What kind of relationship one thing has to another. */
-export const edgeType = z.enum(['dispute', 'extension']);
-export type EdgeType = z.infer<typeof edgeType>;
-
 /* ================================================================== */
 /* SHARED · Places and people                                          */
 /*                                                                     */
@@ -155,7 +153,7 @@ export type EdgeType = z.infer<typeof edgeType>;
 /* contributor is who said something.                                  */
 /* ================================================================== */
 
-/** A physical location that claims get attached to. */
+/** A place somebody designated as meaningful. Records and claims attach to it. */
 export const site = z.object({
   id: z.string(),
   slug: z.string(),
@@ -194,7 +192,8 @@ export const contributor = z.object({
   /**
    * Whether the person behind this profile can prove it is theirs.
    *
-   * `guest` means the id lives in a browser and nothing else. `verified` is not
+   * `guest` means the key to the profile lives in a browser; the history it
+   * unlocks lives in the database and outlasts the browser. `verified` is not
    * built this semester and no fixture uses it; the field exists now because
    * adding it later would mean deciding, retrospectively, what every
    * contribution made before it counted for.
@@ -206,6 +205,12 @@ export const contributor = z.object({
    * including why linking two profiles is not safe to build yet.
    */
   verification: z.enum(['guest', 'verified']),
+  /**
+   * The version of the terms this profile accepted. Terms are accepted once
+   * per profile, at the first contribution, and again when they change. Each
+   * record also stores the version it was made under (`termsVersion`).
+   */
+  termsAcceptedVersion: z.string().optional(),
 });
 export type Contributor = z.infer<typeof contributor>;
 
@@ -223,15 +228,17 @@ export type Contributor = z.infer<typeof contributor>;
  * A record is what somebody actually hands over: a recording, a photograph, a
  * letter, a page of typing.
  *
- * It is deliberately the one thing here nobody can argue with. The photograph
- * exists. What people disagree about is what it shows, and that disagreement
- * lands on a claim instead, where it is about a reading rather than about the
- * person who brought the photograph in.
+ * The photograph exists. What people mostly disagree about is what it shows,
+ * and that disagreement lands on a claim, where it is about a reading rather
+ * than about the person who brought the photograph in. A record isn't beyond
+ * question, though: whether it supports a claim, and whether two records are
+ * really independent, can both be disputed (see `docs/DESIGN-QUESTIONS.md`).
  *
  * A record plays one of two parts. As a **source record** it is where a
- * conversation starts, and every claim in that conversation has it as
+ * conversation starts (a working idea: claims read from one record), and every
+ * claim in that conversation has it as
  * `claim.sourceRecordId`, which is required. As an **evidence record** it is
- * attached to a claim as support, through `claim.evidenceRecordIds`, which is
+ * attached to a claim as support, through `claim.evidence`, which is
  * optional. It is the same record either way, and one record can do both in
  * different conversations. The schema is called `sourceRecord` (the comment on
  * it says why) and describes every record.
@@ -254,22 +261,22 @@ export type ProcessingState = z.infer<typeof processingState>;
 /**
  * Where a record is in its life.
  *
- * `awaiting_context` and `awaiting_transcript` are separate queues because they
- * need different people. Anyone can add context. A transcript needs somebody who
- * speaks the language on the recording, and for the languages this archive
- * cares about there are not many of them.
+ * A recording is published on submission. It doesn't wait for a transcript: a
+ * transcript widens who can use a recording, and it doesn't validate it.
+ * Transcription happens afterwards, a time window at a time (see `recordParent`).
+ * `awaiting_context` is for an image that still needs its note.
  *
- * There is no state for a record being taken back, and that is on purpose.
- * "Nothing is deleted" and "a family can change its mind" are
- * both things this project believes and they contradict each other. Until
- * somebody answers that, the state machine has no exit. See DESIGN-QUESTIONS.
+ * Taking a record back isn't a state here. It's the contributor's privacy
+ * choice (`choices.public`), which they can change at any time, and deletion is
+ * something a person asks for under the terms. What happens to claims built on
+ * a record that stops being public is open. See DESIGN-QUESTIONS, "Can someone
+ * take their record back?".
  */
 export const submissionState = z.enum([
   'draft',
   'submitted',
   'processing',
   'awaiting_context',
-  'awaiting_transcript',
   'published',
 ]);
 export type SubmissionState = z.infer<typeof submissionState>;
@@ -307,11 +314,11 @@ export const capturedLocation = z.object({
   coordinates: z.tuple([z.number(), z.number()]),
   method: locationMethod,
   /**
-   * Rough radius the point is good for, in metres. A number rather than a
+   * Rough radius the point is good for, in meters. A number rather than a
    * category, because every category list we tried presupposed an answer to the
    * question in DESIGN-QUESTIONS.
    */
-  accuracyMetres: z.number().optional(),
+  accuracyMeters: z.number().optional(),
 });
 export type CapturedLocation = z.infer<typeof capturedLocation>;
 
@@ -338,9 +345,8 @@ export type MediaDerivative = z.infer<typeof mediaDerivative>;
  * storing something that stops working. Anything that needs to show a file asks
  * for a fresh link.
  *
- * `checksum` is here so the same file arriving twice can be recognised as the
- * same file. Families share photographs, and two cousins uploading one scan is a
- * duplicate rather than corroboration.
+ * `checksum` lets the system recognize the same file handed over twice. It only
+ * matches identical files: a cropped or re-encoded copy has a different checksum.
  */
 export const mediaRef = z.object({
   id: z.string(),
@@ -368,6 +374,107 @@ export const mediaRef = z.object({
 export type MediaRef = z.infer<typeof mediaRef>;
 
 /**
+ * What the contributor chose for one record. Each record keeps its own answers,
+ * because someone can be happy for one photograph to be public and not another.
+ * Someone's last answers can pre-fill the next record, and every answer can be
+ * changed later.
+ *
+ *   rightToShare    they made it, or have the right to share it. Required.
+ *   studentAccess   whether the student teams may see and work with it
+ *   public          yes; later (ask me again); no
+ *   location        for a photo's embedded location: keep it, show only how
+ *                   far it is from the place, or remove it. Unanswered means
+ *                   remove.
+ *   mentionsPeople  whether it mentions people who are alive, who have died,
+ *                   or the contributor isn't sure
+ */
+export const recordChoices = z.object({
+  rightToShare: z.literal(true),
+  studentAccess: z.boolean(),
+  public: z.enum(['yes', 'later', 'no']),
+  location: z.enum(['keep', 'distance_only', 'remove']),
+  mentionsPeople: z.enum(['no', 'living', 'died', 'not_sure']),
+});
+export type RecordChoices = z.infer<typeof recordChoices>;
+
+/**
+ * A web page handed over as evidence, like a photograph or a document. Whether
+ * a web page can be a source record is open. See DESIGN-QUESTIONS, "Can a web
+ * page be the record a conversation starts from?".
+ *
+ * A link earns weight from what's recorded about it and from independent people
+ * relying on it, never from its domain: a `.gov` address says who published a
+ * page, not whether the page supports a claim. Whether the page's content is
+ * captured when it's added is open. See DESIGN-QUESTIONS, "How does a link
+ * become evidence?".
+ *
+ * `preview` lets a reader see what the page is without leaving Sagas. The
+ * contributor types both parts, and Sagas fetches nothing from the page, so the
+ * summary is a statement of theirs the community can scrutinize like any other.
+ */
+export const linkPreview = z.object({
+  title: z.string().min(1),
+  /** A sentence or two on what the page says, in the contributor's words. */
+  summary: z.string().min(1),
+});
+export type LinkPreview = z.infer<typeof linkPreview>;
+
+export const linkSource = z.object({
+  url: z.string().url(),
+  preview: linkPreview.optional(),
+  /** When the contributor saw the page. Pages change. */
+  seenAt: z.string().optional(),
+});
+export type LinkSource = z.infer<typeof linkSource>;
+
+/**
+ * A stretch of a recording, in seconds from the start. `start` is inclusive and
+ * `end` exclusive.
+ */
+export const timeWindow = z
+  .object({
+    start: z.number().min(0),
+    end: z.number().min(0),
+  })
+  .refine((w) => w.start < w.end, { message: 'A time window has to start before it ends.' });
+export type TimeWindow = z.infer<typeof timeWindow>;
+
+/** How a transcript or a translation was made. Machine output is a draft with a name on it. */
+export const renderingMethod = z.enum(['human', 'machine', 'machine_corrected']);
+export type RenderingMethod = z.infer<typeof renderingMethod>;
+
+/**
+ * What a supporting record supports.
+ *
+ * A record with this set is a supporting record: a transcript of a recording, a
+ * translation of a claim, or a second record that describes the first, like a
+ * recording talking about a photograph. An evidence record has no parent, since
+ * the claim that cites it says what it supports.
+ *
+ * Exactly one of `recordId` and `claimId` is set. `window` says which part of a
+ * recording this covers, and leaving it out means the whole recording.
+ *
+ * More than one can exist for the same parent, each credited to whoever made
+ * it. There is no slot for "the correct one". A transcript and a translation
+ * involve judgment, and a single authoritative version would hide that.
+ */
+export const recordParent = z
+  .object({
+    role: z.enum(['transcript', 'translation', 'description']),
+    recordId: z.string().optional(),
+    claimId: z.string().optional(),
+    window: timeWindow.optional(),
+    method: renderingMethod.optional(),
+  })
+  .refine((p) => (p.recordId === undefined) !== (p.claimId === undefined), {
+    message: 'A supporting record points at one record or one claim.',
+  })
+  .refine((p) => p.window === undefined || p.recordId !== undefined, {
+    message: 'A time window is a stretch of a recording, so it needs a record to point at.',
+  });
+export type RecordParent = z.infer<typeof recordParent>;
+
+/**
  * An artifact somebody contributed, and the place it belongs to.
  *
  * One record is one artifact: a photograph, a recording, a video, a document,
@@ -379,12 +486,16 @@ export type MediaRef = z.infer<typeof mediaRef>;
  * kind. Files of different kinds are different artifacts, so they belong to
  * different records.
  *
- * The three shapes that turn up most:
+ * The shapes that turn up most:
  *
  *   Written record     `text` is set and `media` is empty.
  *   Photo with caption `media` holds one image, `note` says what it is.
- *   Recorded speech    `media` holds audio, `note` may be empty, and a
- *                      transcript arrives later from somebody else entirely.
+ *   Recorded speech    `media` holds audio, `note` may be empty, and
+ *                      transcripts arrive later from somebody else entirely,
+ *                      a time window at a time.
+ *   A web page         `link` is set and `media` is empty.
+ *   A transcript       `text` is set, `media` is empty, and `parent` says
+ *                      which recording and which window it covers.
  *
  * `note` and `text` are not the same field twice. A note is what somebody says
  * about the thing they are handing over, a caption. Text is the record itself,
@@ -419,8 +530,25 @@ const sourceRecordFields = z.object({
   capturedAt: z.string().optional(),
   capturedLocation: capturedLocation.optional(),
   submission: submissionState,
-  /** What has arrived so far. A record can exist before its files finish uploading. */
-  media: z.array(mediaRef),
+  /**
+   * What has arrived so far. A record can exist before its files finish
+   * uploading, and a written record has none, so this can arrive empty, null or
+   * missing. Whichever it was, it comes out of validation as a list.
+   */
+  media: z
+    .array(mediaRef)
+    .nullish()
+    .transform((m) => m ?? []),
+  /** Set when the record is a web page. */
+  link: linkSource.optional(),
+  /** Set when this is a supporting record. See `recordParent`. */
+  parent: recordParent.optional(),
+  /** The collection it was handed over in. See `collection`. */
+  collectionId: z.string().optional(),
+  /** What the contributor chose for this record. */
+  choices: recordChoices,
+  /** The version of the terms the record was made under. */
+  termsVersion: z.string(),
   createdAt: z.string(),
 });
 
@@ -434,9 +562,14 @@ type RecordFields = Omit<z.infer<typeof sourceRecordFields>, 'id'>;
  * photograph with nothing attached is an artifact rather than a contribution.
  * Somebody has to say what it shows, and that is what `note` is for.
  */
-const hasContent = (r: RecordFields) => r.media.length > 0 || Boolean(r.text?.trim());
+const hasContent = (r: RecordFields) =>
+  r.media.length > 0 || Boolean(r.text?.trim()) || r.link !== undefined;
 const hasContentMessage = {
-  message: 'A record needs media or text. A note on its own is a caption with nothing to caption.',
+  message: 'A record needs media, text or a link. A note on its own is a caption with nothing to caption.',
+};
+const linkStandsAlone = (r: RecordFields) => r.link === undefined || r.media.length === 0;
+const linkStandsAloneMessage = {
+  message: 'A web page is its own record, so a record with a link has no media files.',
 };
 const oneKind = (r: RecordFields) => new Set(r.media.map((m) => m.kind)).size <= 1;
 const oneKindMessage = {
@@ -449,8 +582,18 @@ const imageHasNoteMessage = { message: 'An image record needs a note saying what
 export const sourceRecord = sourceRecordFields
   .refine(hasContent, hasContentMessage)
   .refine(oneKind, oneKindMessage)
-  .refine(imageHasNote, imageHasNoteMessage);
+  .refine(imageHasNote, imageHasNoteMessage)
+  .refine(linkStandsAlone, linkStandsAloneMessage);
 export type SourceRecord = z.infer<typeof sourceRecord>;
+
+/** A record that supports another record or a claim: the same shape, with `parent` set. */
+export const supportingRecord = sourceRecordFields
+  .extend({ parent: recordParent })
+  .refine(hasContent, hasContentMessage)
+  .refine(oneKind, oneKindMessage)
+  .refine(imageHasNote, imageHasNoteMessage)
+  .refine(linkStandsAlone, linkStandsAloneMessage);
+export type SupportingRecord = z.infer<typeof supportingRecord>;
 
 /**
  * A record as it arrives, before it is stored: the same, without the `id`.
@@ -461,29 +604,33 @@ export const newSourceRecord = sourceRecordFields
   .omit({ id: true })
   .refine(hasContent, hasContentMessage)
   .refine(oneKind, oneKindMessage)
-  .refine(imageHasNote, imageHasNoteMessage);
+  .refine(imageHasNote, imageHasNoteMessage)
+  .refine(linkStandsAlone, linkStandsAloneMessage);
 export type NewSourceRecord = z.infer<typeof newSourceRecord>;
 
 /**
- * What somebody wrote down from a recording.
+ * The records one profile handed over together, kept whole.
  *
- * The same kind of thing as a translation: an interpretation, attributed, with
- * more than one allowed to exist. Machine output is a draft with a name on it
- * rather than an answer, which is why `method` is stored instead of assumed.
+ * Archives judge a record partly by what it arrived with and why it was kept,
+ * and pooling records by place loses that. So a place points at records and
+ * never takes them over, and each record keeps its collection wherever it's
+ * shown.
+ *
+ * A collection belongs to a profile, which can be a guest, and never to a named
+ * person. It records what a profile did and says nothing about who they are.
+ * What else a collection carries (who originally made or gathered the records,
+ * why they were kept) is open; for now that lives in the contributor's own
+ * words in `note`. See DESIGN-QUESTIONS, "What does a collection carry?".
  */
-export const transcriptMethod = z.enum(['human', 'machine', 'machine_corrected']);
-export type TranscriptMethod = z.infer<typeof transcriptMethod>;
-
-export const transcript = z.object({
+export const collection = z.object({
   id: z.string(),
-  recordId: z.string(),
   contributorId: z.string(),
-  language: languageCode,
-  text: z.string(),
-  method: transcriptMethod,
+  recordIds: z.array(z.string()).min(1),
+  /** The contributor's own description of the collection, if they gave one. */
+  note: z.string().optional(),
   createdAt: z.string(),
 });
-export type Transcript = z.infer<typeof transcript>;
+export type Collection = z.infer<typeof collection>;
 
 /**
  * Somebody reporting a record for review.
@@ -528,27 +675,251 @@ export type Flag = z.infer<typeof flag>;
 /* ================================================================== */
 
 /**
- * One addressable part of a claim: a date, a place, a person.
+ * Some words of a text, and where they sit in it.
+ *
+ * `start` and `end` are character positions, counted the way
+ * `text.slice(start, end)` counts them. They tell the two "1950"s in "built in
+ * 1950, rebuilt after the 1950 fire" apart, which the words alone can't. `text` is
+ * a copy of the words, so a page can show them without slicing the claim, and so
+ * anyone can check the positions still land on them.
+ *
+ * A reference and `to` count into their own claim's `text`, and `at` counts into the
+ * text of what the claim targets. A claim's text doesn't change once it's saved, so
+ * the positions stay true, and a correction is a new claim. The one exception is a claim
+ * awaiting translation, whose first rendering supplies its text.
+ */
+export const excerpt = z
+  .object({
+    start: z.number().int().min(0),
+    end: z.number().int().min(1),
+    text: z.string().min(1),
+  })
+  .refine((e) => e.end - e.start === e.text.length, {
+    message: "An excerpt's positions have to cover exactly its words.",
+  });
+export type Excerpt = z.infer<typeof excerpt>;
+
+/** Whether an excerpt's positions land on its words in this text. */
+export const excerptIsIn = (text: string, e: Excerpt): boolean =>
+  text.slice(e.start, e.end) === e.text;
+
+/** The excerpt for these words in this text. `occurrence` picks a repeat, counting from 1. */
+export const findExcerpt = (text: string, words: string, occurrence = 1): Excerpt | undefined => {
+  let start = -1;
+  for (let i = 0; i < occurrence; i++) {
+    start = text.indexOf(words, start + 1);
+    if (start === -1) return undefined;
+  }
+  return { start, end: start + words.length, text: words };
+};
+
+/** Whether two excerpts of one text are the same words in the same place. */
+export const sameExcerpt = (a: Excerpt, b: Excerpt): boolean =>
+  a.start === b.start && a.end === b.end;
+
+/** How a claim relates to what it targets. */
+export const claimRelation = z.enum(['dispute', 'extension']);
+export type ClaimRelation = z.infer<typeof claimRelation>;
+
+/**
+ * One place a claim points at, inside what it targets. `claim.target.details` is a
+ * list of these. `A.target.details` says where A points. What others point at in A
+ * comes from `detailsOf(graph, "A")`.
+ *
+ * `at` is an object, and it comes in two forms:
+ *
+ *   at: { start, end, text }    words of a claim, or of a record's text, like a
+ *                               transcript. `start` and `end` are characters.
+ *   at: { start, end }          a window of a recording, in seconds.
+ *
+ * An extension points with `at` alone. A dispute says "not X but Y", so on each detail
+ * it points at it also has `to`, the words in its own text that replace that detail.
+ * "Pink" disputed as "blue" has `at` on "pink" in the target and `to` on "blue" here. A
+ * dispute of the whole claim has no details, and its own text is what it says instead.
+ * Marking your own words with `to` doesn't make them a detail. They become one
+ * when someone else points at them.
+ */
+// Strict, so words whose positions don't add up fail here and don't pass as a window.
+const pointedAt = z.union([
+  excerpt,
+  z
+    .object({ start: z.number().min(0), end: z.number().min(0) })
+    .strict()
+    .refine((w) => w.start < w.end, { message: 'A time window has to start before it ends.' }),
+]);
+export const extensionDetail = z.object({ at: pointedAt }).strict();
+export type ExtensionDetail = z.infer<typeof extensionDetail>;
+export const disputeDetail = z.object({ at: pointedAt, to: excerpt });
+export type DisputeDetail = z.infer<typeof disputeDetail>;
+export type TargetDetail = ExtensionDetail | DisputeDetail;
+
+/** Whether `at` is words, as opposed to a window of a recording. */
+export const isExcerpt = (at: TargetDetail['at']): at is Excerpt => 'text' in at;
+
+/** The replacement words on a detail a dispute points at. An extension's have none. */
+export const toOf = (d: TargetDetail): Excerpt | undefined => ('to' in d ? d.to : undefined);
+
+/**
+ * What a claim points into, and where. Every claim has one, and it points into exactly
+ * one thing: another claim, or a record. A transcript or a translation is a record, so
+ * a claim about what a transcript says has `recordId`. `details` lists where it points
+ * inside that thing, and an empty list means all of it. An extension saying "my family
+ * ran it until the war" has none, and neither does a dispute saying a whole claim is
+ * wrong, or a first claim about a photograph.
+ *
+ * One claim can point at several: "Sally bought a pink hat" disputed as "Brandon bought
+ * a blue hat" points at "Sally" and at "pink", and its evidence is cited once.
+ *
+ * When it points at a recording, `at` can name the window: "35:00 to 37:10" of a
+ * two-hour interview, so anyone checking it goes straight to the moment. Until that
+ * window has a transcript, the claim keeps the weight it gets from evidence and
+ * behavior, and the part that comes from the claim itself (its details and its
+ * relations to other claims) isn't counted yet.
+ */
+const targetOf = <D extends z.ZodTypeAny>(detail: D) =>
+  z
+    .object({
+      claimId: z.string().optional(),
+      recordId: z.string().optional(),
+      details: z.array(detail),
+    })
+    .refine((t) => (t.claimId === undefined) !== (t.recordId === undefined), {
+      message: 'A claim points into one claim or one record.',
+    });
+export const extensionTarget = targetOf(extensionDetail);
+export const disputeTarget = targetOf(disputeDetail);
+export type ClaimTarget = z.infer<typeof extensionTarget> | z.infer<typeof disputeTarget>;
+
+/**
+ * How a claim relates to what it targets. Every claim has a relation, and its edge is
+ * its `target` and `relation` together. A first claim about a photo extends the photo.
+ * A dispute carries its reasoning, required and checked here rather than left to the
+ * interface.
+ *
+ * A record that stands on its own can only be extended: it stays true as evidence that
+ * someone said something, even if what it says is wrong. A record with a `parent`, like
+ * a transcript or a translation, is someone's rendering, so it can be disputed too. The
+ * scoring graph checks that, because it takes the record to know.
+ */
+export const claimReply = z.discriminatedUnion('relation', [
+  z.object({
+    relation: z.literal('extension'),
+    reasoning: z.undefined().optional(),
+    target: extensionTarget,
+  }),
+  z.object({
+    relation: z.literal('dispute'),
+    reasoning: z.string().refine((r) => r.trim().length > 0, {
+      message: "A dispute without a reason isn't a dispute.",
+    }),
+    target: disputeTarget,
+  }),
+]);
+export type ClaimReply = z.infer<typeof claimReply>;
+
+/**
+ * Whether a reply disputes these words of the claim it targets. It does when it's a
+ * dispute of the whole claim, or when it points at these words or a longer excerpt
+ * that contains them. Otherwise "1950" would read as settled while the claim it sits
+ * in is disputed.
+ */
+export const contests = (
+  reply: { relation: ClaimRelation; target: ClaimTarget },
+  e: Excerpt,
+): boolean =>
+  reply.relation === 'dispute' &&
+  (reply.target.details.length === 0 ||
+    reply.target.details.some(
+      (d: TargetDetail) => isExcerpt(d.at) && d.at.start <= e.start && d.at.end >= e.end,
+    ));
+
+/**
+ * An excerpt of a claim that another claim points at.
  *
  * This is what lets someone disagree about the year without disagreeing about
- * the building. Without it, one objection marks a whole claim as contested
- * even when most of it is fine.
+ * the building. Nobody lists a claim's details in advance, and there's no
+ * complete list. A claim's details are worked out from what points at it, so a
+ * claim nothing points at has none, and neither does one only replied to as a whole.
+ * Marking your own words never makes a detail.
  *
- * `excerpt` is the literal phrase from the claim text, so an interface can
- * highlight it without doing character-offset arithmetic.
+ * The same words in the same place are one detail. "1948" and "opened in 1948" are
+ * two for now, and whether they should count as one is a question for later.
  */
 export const claimDetail = z.object({
+  /** Worked out from the claim and the excerpt, with `detailId`. */
   id: z.string(),
-  kind: z.enum(['date', 'place', 'person', 'event', 'quantity', 'attribution']),
-  /** The value being asserted, tidied up. "1943", "Grove Street entrance". */
-  value: z.string(),
   /** The words in the claim text this refers to. */
-  excerpt: z.string(),
+  excerpt,
 });
 export type ClaimDetail = z.infer<typeof claimDetail>;
 
-/** Something someone asserts about a place. */
-export const claim = z.object({
+/** The id of a detail, from the claim it's in and where its excerpt sits. */
+export const detailId = (claimId: string, e: Excerpt): string => `${claimId}#${e.start}-${e.end}`;
+
+/**
+ * A typed link inside a claim's own text: this is a date, this is a place, this is
+ * a person, this points to a record. The contributor adds it, possibly prompted, or
+ * the system suggests it and the contributor confirms.
+ *
+ * References help with finding and with telling whether a reply is about what it
+ * targets. Nothing scores them yet. How they get added is open. See
+ * DESIGN-QUESTIONS, "How do you tell whether a reply is about what it targets?".
+ */
+export const claimReference = z.object({
+  kind: z.enum(['date', 'place', 'person', 'record']),
+  /** The words in the claim text this marks. */
+  excerpt,
+  /** A site id for a place, or a record id for a record. A person never has one. */
+  refId: z.string().optional(),
+  status: z.enum(['suggested', 'confirmed']),
+});
+export type ClaimReference = z.infer<typeof claimReference>;
+
+/**
+ * A record attached to a claim to back it up. The evidence backs what the claim
+ * targets.
+ *
+ * If a claim targets an evidence record, that starts a new thread with that record
+ * as its source.
+ */
+export const claimEvidence = z.object({
+  recordId: z.string(),
+});
+export type ClaimEvidence = z.infer<typeof claimEvidence>;
+
+/**
+ * What has to hold for a claim beyond its shape. The contract's claim and the scoring
+ * graph's claim both check it.
+ */
+export function checkClaim(
+  c: { text: string; target: ClaimTarget; references: ClaimReference[] },
+  ctx: z.RefinementCtx,
+): void {
+  const problem = (message: string) => ctx.addIssue({ code: z.ZodIssueCode.custom, message });
+  for (const d of c.target.details as TargetDetail[]) {
+    if (!isExcerpt(d.at) && c.target.recordId === undefined) {
+      problem('A time window is a stretch of a recording, so only a record has one.');
+    }
+    const to = toOf(d);
+    if (to && !excerptIsIn(c.text, to)) {
+      problem(`"${to.text}" isn't at that position in this claim's own text.`);
+    }
+  }
+  for (const r of c.references) {
+    if (!excerptIsIn(c.text, r.excerpt)) {
+      problem(`The reference "${r.excerpt.text}" isn't at that position in this claim's own text.`);
+    }
+  }
+}
+
+/**
+ * Something a person says about a record or about another claim.
+ *
+ * A reply's `target` and `relation` are its edge. Nothing stores that edge a second
+ * time, so anything that wants a list of them reads it off the
+ * claims.
+ */
+const claimFields = z.object({
   id: z.string(),
   siteId: z.string(),
   contributorId: z.string(),
@@ -560,7 +931,7 @@ export const claim = z.object({
    * field, not an attachment, so nothing is lost by rendering it.
    */
   sourceLanguageText: z.string().optional(),
-  details: z.array(claimDetail),
+  references: z.array(claimReference),
   sourceType,
   createdAt: z.string(),
   /**
@@ -587,46 +958,25 @@ export const claim = z.object({
    * The same record can be the source of one conversation and evidence in
    * another. The record does not change. Its part in each place does.
    */
-  evidenceRecordIds: z.array(z.string()),
-  /** Set when this was added as context on another claim. */
-  parentClaimId: z.string().optional(),
-  /**
-   * Set when this claim disputes a detail of another claim. A convenience copy
-   * so a claim list can tell disputes apart without a join. The dispute edge is
-   * the real record of what it targets.
-   */
-  disputedClaimId: z.string().optional(),
+  evidence: z.array(claimEvidence),
   /**
    * True when a claim is in the archive and readable in its original language
    * at the site it belongs to, but nobody has rendered it into English yet.
    *
-   * It is visible and attributed. It carries no weight only because there is
-   * nothing yet to compare it against. It is never deleted and never hidden.
+   * It is visible and attributed, never deleted and never hidden. Until it's
+   * rendered, the part of its weight that depends on what it says isn't
+   * counted, because nothing can be compared against it yet. It keeps what it
+   * gets from evidence and behavior.
    */
   awaitingTranslation: z.boolean(),
 });
+export const claim = z.intersection(claimFields, claimReply).superRefine(checkClaim);
 export type Claim = z.infer<typeof claim>;
-
-/**
- * Someone's rendering of a claim into another language.
- *
- * More than one can exist for the same claim, each credited to whoever wrote
- * it. There is no slot for "the correct one". Translation involves judgement,
- * and hiding that behind a single authoritative version loses information.
- */
-export const translation = z.object({
-  id: z.string(),
-  claimId: z.string(),
-  contributorId: z.string(),
-  targetLanguage: languageCode,
-  text: z.string(),
-  createdAt: z.string(),
-});
-export type Translation = z.infer<typeof translation>;
 
 /** Someone saying a rendering gets something wrong. Kept permanently. */
 export const translationDispute = z.object({
   id: z.string(),
+  /** The id of the supporting record that holds the translation. */
   translationId: z.string(),
   contributorId: z.string(),
   /** "The original says X, this renders it as Y." */
@@ -636,66 +986,7 @@ export const translationDispute = z.object({
 export type TranslationDispute = z.infer<typeof translationDispute>;
 
 /* ================================================================== */
-/* SHARED · Edges                                                      */
-/*                                                                     */
-/* What people do to a claim: disagree with part of it, or add context. */
-/* These are the graph.                                                 */
-/* ================================================================== */
-
-/**
- * Someone disagreeing with one specific part of a claim.
- *
- * A dispute is a claim of its own, connected by this edge. The claim holds what
- * the person asserts instead, with its own details, source record and evidence,
- * so it can be corroborated, extended or disputed like any other claim. The
- * edge holds what it targets and why.
- */
-export const disputeEdge = z.object({
-  id: z.string(),
-  type: z.literal('dispute'),
-  /** The dispute's own claim. */
-  fromClaimId: z.string(),
-  targetClaimId: z.string(),
-  /** Which part. Disagreement always lands on a detail, never a whole claim. */
-  targetDetailId: z.string(),
-  /**
-   * Why. Required, and checked here rather than left to the interface, because
-   * a dispute without a reason isn't a dispute. "This is wrong" cannot be filed.
-   */
-  reasoning: z.string().min(1),
-  /**
-   * What they say instead, if they say anything. A convenience copy of the
-   * value the dispute's claim asserts, so competing readings can be listed
-   * from the edge. The dispute's claim and its details are the real record.
-   */
-  proposedValue: z.string().optional(),
-  contributorId: z.string(),
-  createdAt: z.string(),
-});
-export type DisputeEdge = z.infer<typeof disputeEdge>;
-
-/** Someone adding context to a claim without contradicting it. */
-export const extensionEdge = z.object({
-  id: z.string(),
-  type: z.literal('extension'),
-  parentClaimId: z.string(),
-  childClaimId: z.string(),
-  /**
-   * Which part it adds to, the way a dispute names the detail it disagrees
-   * with. Empty when the extension is about the whole claim ("my family ran it
-   * until the war").
-   */
-  targetDetailId: z.string().optional(),
-  contributorId: z.string(),
-  createdAt: z.string(),
-});
-export type ExtensionEdge = z.infer<typeof extensionEdge>;
-
-export const edge = z.discriminatedUnion('type', [disputeEdge, extensionEdge]);
-export type Edge = z.infer<typeof edge>;
-
-/* ================================================================== */
-/* SHARED · Signals                                                    */
+/* SHARED · Signals                                                   */
 /*                                                                     */
 /* Low-effort reactions. They tune what gets shown to whom. They are not */
 /* votes and they are not ratings.                                      */
@@ -726,17 +1017,75 @@ export type Passover = z.infer<typeof passover>;
 /* Nothing below is authored. It is all worked out from everything      */
 /* above, and it is what the experience layer renders.                  */
 /*                                                                     */
-/* The intelligence layer owns how these numbers are produced.          */
-/* `contributorStanding` in particular is their raw material, and the   */
-/* comment on it explains why it holds counts and never a score.        */
+/* Scores are a set of named terms, in the shape the intelligence       */
+/* layer's scorer returns (`claimScore`). The fixtures fill them with   */
+/* an invented stand-in until the real scorer exists. The counts here   */
+/* (`contributorStanding`, `independentRecordCount`) are raw material,  */
+/* never a score on their own.                                          */
 /* ================================================================== */
+
+/**
+ * One ingredient of a score. Behavior is what a profile has done; content is
+ * what a claim and its records carry. The scorer names its own terms.
+ */
+export const scoreTerm = z.object({
+  family: z.enum(['content', 'behavior']),
+  name: z.string(),
+  value: z.number(),
+});
+export type ScoreTerm = z.infer<typeof scoreTerm>;
+
+/** A detail's score, the terms it's made of, and what's behind it. */
+export const detailScore = z.object({
+  detailId: z.string(),
+  excerpt,
+  score: z.number(),
+  terms: z.array(scoreTerm),
+  /**
+   * True when a dispute points at this detail, at a stretch that contains it, or at
+   * the whole claim. A disputed detail is never reported as settled.
+   */
+  contested: z.boolean(),
+  /** The claims that dispute or extend this detail. */
+  claimIds: z.array(z.string()),
+  /** The evidence on those claims. */
+  evidenceRecordIds: z.array(z.string()),
+});
+export type DetailScore = z.infer<typeof detailScore>;
+
+/**
+ * A claim's score: a composite of its details, its place in the graph, the
+ * evidence it carries, independent support and behavior. This is the shape
+ * the intelligence layer's scorer returns for each claim. Readers never see
+ * the numbers. They decide what's shown first.
+ */
+export const claimScore = z.object({
+  claimId: z.string(),
+  score: z.number(),
+  terms: z.array(scoreTerm),
+  details: z.array(detailScore),
+});
+export type ClaimScore = z.infer<typeof claimScore>;
+
+/** A dispute of a claim or of one of its details, worked out from the dispute's own claim. */
+export const claimDispute = z.object({
+  /** The dispute's own claim. */
+  claimId: z.string(),
+  contributorId: z.string(),
+  reasoning: z.string().min(1),
+  /** The words in the dispute's own text that replace this detail, when it points at exactly this detail. */
+  to: excerpt.optional(),
+  createdAt: z.string(),
+});
+export type ClaimDispute = z.infer<typeof claimDispute>;
 
 /** One detail of a claim, plus whatever anyone has said about it. */
 export const detailStatus = z.object({
   detail: claimDetail,
-  disputes: z.array(disputeEdge),
-  /** Extensions that add to this detail. Extensions about the whole claim aren't listed here. */
-  extensions: z.array(extensionEdge),
+  /** Disputes that contest this detail, including any of the whole claim. */
+  disputes: z.array(claimDispute),
+  /** The claims that add to this detail. Extensions about the whole claim aren't listed here. */
+  extensions: z.array(z.string()),
   /**
    * Every value anyone has asserted for this detail, in the order they arrived,
    * the claim's own first. Ordering by strength is the intelligence layer's.
@@ -752,6 +1101,11 @@ export const detailStatus = z.object({
       contributorIds: z.array(z.string()),
     }),
   ),
+  /**
+   * How much the claim leans on this detail, from the claim's score. A
+   * convenience copy of the matching entry in `claimState.score.details`.
+   */
+  weight: z.number(),
 });
 export type DetailStatus = z.infer<typeof detailStatus>;
 
@@ -773,7 +1127,8 @@ export const claimState = z.object({
    */
   sourceRecord: sourceRecord,
   evidenceRecords: z.array(sourceRecord),
-  translations: z.array(translation),
+  /** The records that translate this claim. More than one is normal. */
+  translations: z.array(supportingRecord),
   translationDisputes: z.array(translationDispute),
   /**
    * Distinct records, other than this claim's own, that other contributors have
@@ -785,6 +1140,9 @@ export const claimState = z.object({
    * Agreement ("sounds right") never counts here.
    */
   independentRecordCount: z.number(),
+  /** Every claim that disputes this one, in whole or in part. */
+  disputes: z.array(claimDispute),
+  /** Every claim that extends this one, in whole or in part. */
   extensions: z.array(z.string()),
   /** Counts for all three kinds, always present, zero when nobody has reacted. */
   passover: z.object({
@@ -793,7 +1151,13 @@ export const claimState = z.object({
     dont_care: z.number(),
   }),
   detailStatuses: z.array(detailStatus),
-  /** See `weight.ts` in the fixtures package. This is a stand-in, not the real scoring. */
+  /**
+   * The claim's score, in the shape the intelligence layer's scorer returns.
+   * In the fixtures it's an invented stand-in (`stand-in-score.ts`), so build
+   * against the shape and not the numbers.
+   */
+  score: claimScore,
+  /** A convenience copy of `score.score`, for ordering. */
   weight: z.number(),
   confidence,
 });
@@ -803,22 +1167,21 @@ export type ClaimState = z.infer<typeof claimState>;
  * What one contributor has actually done here.
  *
  * Every field is a count of something that happened. There is no score in this
- * shape and there must not be one. Behaviour is meant to count toward a claim's
- * score: what a profile has done is a behaviour term, and who they are never
+ * shape and there must not be one. Behavior is meant to count toward a claim's
+ * score: what a profile has done is a behavior term, and who they are never
  * is. The scorer doesn't read it yet. What
  * any of these counts means, whether a long record of corroborated claims
  * should count for more than a short one, whether somebody who disputes
  * constantly is careful or difficult, is the intelligence layer's design work.
  *
  * This shape is the raw material. An algorithm can only use what the model
- * writes down, so the job here is to record behaviour faithfully and judge
+ * writes down, so the job here is to record behavior faithfully and judge
  * none of it.
  *
  * Two of these are worth more than their names suggest:
  *
- * `disputesRaisedWithAlternative` separates "that date is wrong, it was 1914"
- * from "that date is wrong". Both are disputes. Only one of them moves the
- * record forward, and telling them apart needs no reading.
+ * `disputesRaisedWithAlternative` counts the disputes that name a replacement for a
+ * detail, "that date is wrong, it was 1914". A dispute of a whole claim names none.
  *
  * `claimsCorroborated` counts claims of theirs that somebody else backed with a
  * record of their own. That is the one signal here that cannot be produced by a
@@ -841,7 +1204,7 @@ export const contributorStanding = z.object({
   /** Claims of theirs that somebody has disputed part of. Not a mark against them. */
   claimsDisputed: z.number(),
   disputesRaised: z.number(),
-  /** Of those, the ones that proposed a different value instead of only objecting. */
+  /** Of those, the ones that point at details, each with its replacement. */
   disputesRaisedWithAlternative: z.number(),
   /** "Sounds right" passovers they left. */
   soundsRightGiven: z.number(),
@@ -851,9 +1214,16 @@ export const contributorStanding = z.object({
 });
 export type ContributorStanding = z.infer<typeof contributorStanding>;
 
-/** How well-documented a place is. Drives how its marker looks on the map. */
+/**
+ * How well-documented a place is. Drives how its marker looks on the map, and
+ * nothing here is shown to readers as a score.
+ */
 export const integrityScore = z.object({
   totalClaims: z.number(),
+  /**
+   * Distinct contributors who made claims here. A count of people, so it is
+   * not corroboration, which counts independent records.
+   */
   independentContributors: z.number(),
   /** Share of claims with at least one independent record. */
   corroborationDepth: z.number().min(0).max(1),
@@ -861,14 +1231,17 @@ export const integrityScore = z.object({
   /**
    * How many claims name a date.
    *
-   * Counted from date details, so it reflects what people actually said rather
+   * Counted from date references, so it reflects what people actually said rather
    * than a period somebody chose for them at entry time. A record where nobody
    * has pinned down when anything happened is a thinner record, and this is the
    * part of the score that says so.
    */
   datedClaims: z.number(),
   awaitingTranslation: z.number(),
-  /** 0-100 rollup, for marker styling. Placeholder formula. */
+  /**
+   * A 0 to 100 rollup used only to style the map marker. A placeholder formula,
+   * never shown as a number and never a ranking of places.
+   */
   overall: z.number().min(0).max(100),
 });
 export type IntegrityScore = z.infer<typeof integrityScore>;
@@ -879,7 +1252,7 @@ export type IntegrityScore = z.infer<typeof integrityScore>;
  * The shape is decided and how a section is produced is not. Which claims
  * belong together, and what the heading says, is the intelligence layer's work.
  * Until that exists, the fixtures carry invented sections, the same way
- * `weight.ts` stands in for scoring. A section does not list records or claims:
+ * the fixtures' stand-in score stands in for scoring. A section does not list records or claims:
  * what it covers follows from its composition.
  *
  * See `docs/DESIGN-QUESTIONS.md` for what is open about headings.
@@ -938,8 +1311,14 @@ export const graphState = z.object({
   site,
   claims: z.array(claimState),
   contributors: z.array(contributor),
-  /** Everything handed over for this place, with its files. */
+  /**
+   * Everything handed over for this place, with its files. Supporting records
+   * are in here too: a transcript is a record whose `parent.role` is
+   * `transcript`, and more than one per recording is normal.
+   */
   records: z.array(sourceRecord),
+  /** The collections those records arrived in. */
+  collections: z.array(collection),
   /**
    * What each contributor has done, as counts and nothing else.
    *
@@ -947,8 +1326,6 @@ export const graphState = z.object({
    * single number owns that decision and should write down why.
    */
   standings: z.array(contributorStanding),
-  /** Every transcript of every record here. More than one per record is normal. */
-  transcripts: z.array(transcript),
   /** Open and resolved reports, kept together. A resolved flag is still evidence. */
   flags: z.array(flag),
   integrity: integrityScore,
@@ -972,29 +1349,45 @@ export const schemas = {
   site,
   contributor,
   claim,
+  excerpt,
   claimDetail,
+  claimRelation,
+  extensionDetail,
+  disputeDetail,
+  extensionTarget,
+  disputeTarget,
+  claimReply,
+  claimReference,
+  claimEvidence,
+  claimDispute,
   claimState,
   graphState,
   section,
   compositionSpan,
   composition,
   integrityScore,
-  disputeEdge,
-  extensionEdge,
-  edge,
   passover,
-  translation,
   translationDispute,
   sourceRecord,
+  supportingRecord,
+  recordParent,
+  linkPreview,
+  newSourceRecord,
+  recordChoices,
+  linkSource,
+  collection,
+  timeWindow,
+  scoreTerm,
+  detailScore,
+  claimScore,
   mediaRef,
   mediaDerivative,
   capturedLocation,
-  transcript,
   flag,
   contributorStanding,
   flagReason,
   flagStatus,
-  transcriptMethod,
+  renderingMethod,
   mediaKind,
   processingState,
   submissionState,

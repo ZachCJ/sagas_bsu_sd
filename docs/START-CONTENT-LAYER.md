@@ -27,8 +27,9 @@ You own two apps. `apps/capture-api` has a starting skeleton and `apps/capture-w
 - **Site.** A place somebody has designated as meaningful. Records and claims
   attach to a site. A site does not attach to them.
 - **Record.** What somebody hands over. A recording, a video, a photograph, a
-  scanned document, or typed text. Nothing in the graph argues with a record.
-  Disagreement lands on claims instead.
+  scanned document, or typed text. Nothing in the graph argues with a record that
+  stands on its own. Disagreement lands on claims instead, and on a transcript or a translation,
+  which are someone's rendering of a record.
 - **Claim.** Somebody's reading of a record. The record the conversation started
   from is the claim's source record, and a claim can also carry other records as
   evidence. This is where disagreement lands. One record can produce several claims.
@@ -49,7 +50,7 @@ These belong to other teams and nothing you build depends on them.
 
 - `apps/web`, `apps/ui-api`, `packages/read-model`, the reading experience
 - `apps/graph-api`, the scoring and claim-graph work
-- `packages/fixtures/behaviour/` and `packages/fixtures/scoring/`, scoring rules for a different team
+- `packages/fixtures/scoring/`, scoring rules for a different team
 - Anything about corroboration, weights, or trust scores
 
 If a document starts talking about claim graphs, you're in the wrong section.
@@ -107,10 +108,10 @@ is unclear.
 **One fork for the whole team.** Three personal forks means three
 diverging copies and no single place your work lives.
 
-1. **Create a free GitHub organisation for the team, rather than using a personal account.**
+1. **Create a free GitHub organization for the team, rather than using a personal account.**
    If the repo lives in one person's GitHub account and that person drops the class,
    the team loses everything, and your instructor needs access for grading.
-2. **One person forks `Civum/sagas` into that organisation, once.** That fork is
+2. **One person forks `Civum/sagas` into that organization, once.** That fork is
    now the team's repository.
 3. **Everyone clones that fork, including whoever created it.** Nobody forks
    again.
@@ -210,10 +211,9 @@ different TypeScript from the one the build uses.
 1. `apps/capture-api/README.md`. Start with "This semester", which has the scope.
 2. `apps/capture-web/README.md`, shorter, covering the browser side.
 3. `packages/contracts/src/model.ts`. Read the **records and media** section
-   first, and you can skip the rest. Claims and edges are written by the
-   intelligence layer.
-4. `packages/fixtures/fixtures/example-site/events.ts`, nine example records.
-   This project treats them as the spec: code that handles all nine handles every case the fixtures know about.
+   first, and you can skip the rest. The intelligence layer stores claims.
+4. `packages/fixtures/fixtures/freight-depot/events.ts`, eight example records.
+   This project treats them as the spec: code that handles all eight handles every case the fixtures know about.
 
 That's about an hour of reading. Everything else can wait until you need it.
 
@@ -351,7 +351,7 @@ happen.
 **Postgres** is the database. It's a much bigger tool than SQLite, and the parts
 that matter here are that it handles many writers at once, has a real type
 system, and has a geographic extension called **PostGIS** for questions like
-"what records are within two kilometres of this building". You'll meet PostGIS
+"what records are within two kilometers of this building". You'll meet PostGIS
 later in the semester.
 
 **MinIO** is file storage that speaks the same API as Amazon S3. Photographs and
