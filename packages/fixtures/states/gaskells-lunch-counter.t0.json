@@ -26,21 +26,32 @@
         "siteId": "site-gaskells",
         "contributorId": "c-dolores",
         "sourceRecordId": "rec-menu-photo",
-        "evidenceRecordIds": [],
+        "evidence": [],
+        "relation": "extension",
+        "target": {
+          "recordId": "rec-menu-photo",
+          "details": []
+        },
         "text": "Gaskell's was on the corner of 9th and Bannock and it closed in 1979. My mother took this photograph of the menu on one of the last days it was open. She kept it in the kitchen drawer for the rest of her life.",
         "sourceLanguage": "en",
-        "details": [
+        "references": [
           {
-            "id": "el-gk-year",
             "kind": "date",
-            "value": "1979",
-            "excerpt": "it closed in 1979"
+            "excerpt": {
+              "start": 51,
+              "end": 68,
+              "text": "it closed in 1979"
+            },
+            "status": "confirmed"
           },
           {
-            "id": "el-gk-place",
             "kind": "place",
-            "value": "9th and Bannock",
-            "excerpt": "on the corner of 9th and Bannock"
+            "excerpt": {
+              "start": 14,
+              "end": 46,
+              "text": "on the corner of 9th and Bannock"
+            },
+            "status": "confirmed"
           }
         ],
         "sourceType": "family_oral",
@@ -76,59 +87,66 @@
             "createdAt": "2026-02-03T18:41:00Z"
           }
         ],
+        "choices": {
+          "rightToShare": true,
+          "studentAccess": true,
+          "public": "yes",
+          "location": "keep",
+          "mentionsPeople": "not_sure"
+        },
+        "termsVersion": "fixture-terms-0.1",
         "createdAt": "2026-02-03T18:41:00Z"
       },
       "evidenceRecords": [],
       "translations": [],
       "translationDisputes": [],
       "independentRecordCount": 0,
+      "disputes": [],
       "extensions": [],
       "passover": {
         "sounds_right": 0,
         "dont_know": 0,
         "dont_care": 0
       },
-      "detailStatuses": [
-        {
-          "detail": {
-            "id": "el-gk-year",
-            "kind": "date",
-            "value": "1979",
-            "excerpt": "it closed in 1979"
+      "detailStatuses": [],
+      "score": {
+        "claimId": "cl-closed-1979",
+        "score": 1,
+        "terms": [
+          {
+            "family": "content",
+            "name": "base",
+            "value": 1
           },
-          "disputes": [],
-          "extensions": [],
-          "competingValues": [
-            {
-              "value": "1979",
-              "count": 1,
-              "contributorIds": [
-                "c-dolores"
-              ]
-            }
-          ]
-        },
-        {
-          "detail": {
-            "id": "el-gk-place",
-            "kind": "place",
-            "value": "9th and Bannock",
-            "excerpt": "on the corner of 9th and Bannock"
+          {
+            "family": "content",
+            "name": "evidence attached",
+            "value": 0
           },
-          "disputes": [],
-          "extensions": [],
-          "competingValues": [
-            {
-              "value": "9th and Bannock",
-              "count": 1,
-              "contributorIds": [
-                "c-dolores"
-              ]
-            }
-          ]
-        }
-      ],
-      "weight": 2,
+          {
+            "family": "content",
+            "name": "independent support",
+            "value": 0
+          },
+          {
+            "family": "behavior",
+            "name": "sounds right",
+            "value": 0
+          },
+          {
+            "family": "content",
+            "name": "extensions",
+            "value": 0
+          },
+          {
+            "family": "content",
+            "name": "disputes",
+            "value": 0
+          }
+        ],
+        "details": []
+      },
+      "weight": 1,
       "confidence": "single_source"
     }
   ],
@@ -164,9 +182,18 @@
           "createdAt": "2026-02-03T18:41:00Z"
         }
       ],
+      "choices": {
+        "rightToShare": true,
+        "studentAccess": true,
+        "public": "yes",
+        "location": "keep",
+        "mentionsPeople": "not_sure"
+      },
+      "termsVersion": "fixture-terms-0.1",
       "createdAt": "2026-02-03T18:41:00Z"
     }
   ],
+  "collections": [],
   "standings": [
     {
       "contributorId": "c-dolores",
@@ -184,7 +211,6 @@
       "flagsRaised": 0
     }
   ],
-  "transcripts": [],
   "flags": [],
   "integrity": {
     "totalClaims": 1,

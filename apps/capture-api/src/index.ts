@@ -15,20 +15,22 @@
  *   curl -X POST http://localhost:3001/records \
  *     -H 'content-type: application/json' \
  *     -d '{
- *       "id": "rec-100",
  *       "siteId": "site-001",
  *       "contributorId": "guest-abc",
  *       "text": "My great-grandmother cooked in the boarding house kitchen.",
  *       "language": "en",
  *       "submission": "submitted",
  *       "media": [],
+ *       "choices": {
+ *         "rightToShare": true, "studentAccess": false, "public": "later",
+ *         "location": "remove", "mentionsPeople": "not_sure"
+ *       },
+ *       "termsVersion": "provisional-0.1",
  *       "createdAt": "2026-09-07T12:00:00Z"
  *     }'
  */
 import express from "express";
-
-//import { sourceRecord } from "@sagas/contracts";
-//import { pool } from "./db";
+//Note: Record moved to recordsRouter under filepath mentioned below
 
 /**
  * Initializing routing bases for sections of the API.
@@ -55,6 +57,36 @@ app.use("/map", mapRouter);
 app.get("/health", (_req, res) => {
   res.json({ ok: true });
 });
+
+/**
+ * A database row back into the contract's shape.
+ *
+ * Postgres hands back `site_id`, nulls and dates as Date objects. The contract
+ * is the agreed shape of a record, so the API answers in it and the row is
+ * translated on the way out. `media` is empty because this endpoint
+ * only takes written records so far; when files arrive, they get read from
+ * their own table here.
+ */
+function toRecord(row: Record<string, unknown>) {
+  const date = (v: unknown) => (v instanceof Date ? v.toISOString() : (v as string | null) ?? undefined);
+  return {
+    id: row.id as string,
+    siteId: row.site_id as string,
+    contributorId: row.contributor_id as string,
+    note: (row.note as string | null) ?? undefined,
+    text: (row.text as string | null) ?? undefined,
+    language: (row.language as string | null) ?? undefined,
+    capturedAt: date(row.captured_at),
+    submission: row.submission as string,
+    media: [],
+    link: (row.link as Record<string, unknown> | null) ?? undefined,
+    parent: (row.parent as Record<string, unknown> | null) ?? undefined,
+    collectionId: (row.collection_id as string | null) ?? undefined,
+    choices: row.choices as Record<string, unknown>,
+    termsVersion: row.terms_version as string,
+    createdAt: date(row.created_at),
+  };
+}
 
 /**
  * Anything a handler throws lands here.

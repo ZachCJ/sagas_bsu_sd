@@ -34,12 +34,10 @@ algorithm can possibly be good at.
   passover signals ("sounds right" is agreement), and a placeholder weight.
 - `records` — what people actually handed over, with media, processing state,
   and where each one says it was made and how that location was determined.
-- `transcripts` — what somebody wrote down from a recording, attributed, with
-  more than one allowed per record.
 - `flags` — reports, with reasoning, open and resolved together.
 - `standings` — what every contributor has actually done, as counts.
 
-That last one is yours. It records behaviour and judges none of it, and turning
+That last one is yours. It records behavior and judges none of it, and turning
 it into something that means anything is the deliverable. Read the comment on
 `contributorStanding` in `packages/contracts/src/model.ts` and then the entry in
 `docs/DESIGN-QUESTIONS.md` called "How do you tell a good source from a bad
@@ -71,29 +69,22 @@ Then read, in order:
 
 ## Seeing what your changes do
 
-`pnpm fixtures:build` uses the placeholder in `packages/fixtures/src/weight.ts`,
-not your scorer, so it shows how the fixtures move rather than how your scorer
-scores. To see your scorer, run its tests or send a graph to `POST /score`.
-The rest of this section describes the placeholder.
+`pnpm fixtures:build` uses the invented stand-in in
+`packages/fixtures/src/stand-in-score.ts`, not your scorer, so it shows how the
+fixtures move rather than how your scorer scores. The stand-in returns scores in
+the same shape your scorer does (`claimScore` in the contract), which is why the
+experience layer can build against it now. To see your scorer, run its tests or
+send a graph to `POST /score`.
 
-Change the placeholder, run `pnpm fixtures:build`, then `git diff` on
-`packages/fixtures/states/`. Every claim in the archive that moved shows up in
-the diff: which one now leads the article, how integrity shifted, whether the
-only untranslated claim just got buried.
-
-That works as a regression test and a picture at once, and this project expects
-you to use it on the source-quality question, because "this quietly discounts
-small communities" does not show up in a unit test.
-
-To ask why one claim scores what it does:
+To see what a stand-in score is made of:
 
 ```bash
-pnpm inspect --site example-site cl-boarding
+pnpm inspect --site freight-depot cl-fd-office
 ```
 
-That prints the inputs next to the outputs. A weight on its own is not evidence
-of anything. A weight next to "two independent records and three disputes on
-the date" is.
+That prints each claim's terms and each detail's score. A number on its own is
+not evidence of anything. The terms next to it are where a score explains
+itself.
 
 ## The database
 
@@ -113,7 +104,7 @@ one interesting way. Finding out which one is part of this too.
 What it needs to grow:
 
 - A schema for places, records, contributions, and the people who made them
-- Spatial indexing, so "everything within two kilometres of here" is fast. Read
+- Spatial indexing, so "everything within two kilometers of here" is fast. Read
   [`docs/GIS.md`](../../docs/GIS.md) first
 - Migrations, so the schema can change without anyone losing data
 - A seed script that loads the fixtures into a running database
@@ -134,7 +125,7 @@ This app is yours alone. `apps/capture-api` belongs to the content layer and
 teams edit the same files, and so each can be deployed on its own terms.
 
 There are three databases, one per layer, and none of them reads another's tables. Yours
-is the store for claims, edges, contributors and the graph derived from them,
+is the store for claims, contributors and the graph derived from them,
 and designing it is your deliverable. The content layer runs its own for what
 people hand over: records, media, transcripts, translations, flags. The
 experience layer runs a small Postgres seeded from the fixtures, shaped for map
