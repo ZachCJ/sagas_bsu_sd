@@ -4303,7 +4303,8 @@ snapshots:
 
   depd@2.0.0: {}
 
-  detect-libc@2.1.2: {}
+  detect-libc@2.1.2:
+    optional: true
 
   didyoumean@1.2.2: {}
 

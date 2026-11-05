@@ -17,7 +17,7 @@ echo "In Linux if current user isnt apart of the docker group docker setup may n
 echo ""
 echo "If Docker isnt working run sudo usermod -aG docker $USER and either sign out and sign in or run newgrp docker"
 
-sleep 2
+sleep 3
 
 read -p "Enter your Mapbox Key: " mtok
 

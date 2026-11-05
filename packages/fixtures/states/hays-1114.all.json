@@ -26,21 +26,23 @@
           "siteId": "site-hays-1114",
           "contributorId": "c-tomas",
           "sourceRecordId": "rec-hays-shoes",
-          "evidenceRecordIds": [],
+          "evidence": [],
+          "relation": "extension",
+          "target": {
+            "recordId": "rec-hays-shoes",
+            "details": []
+          },
           "text": "The shoe repair at 1114 was there from the late fifties until it shut. The family lived above the shop.",
           "sourceLanguage": "en",
-          "details": [
+          "references": [
             {
-              "id": "el-ha-trade",
-              "kind": "event",
-              "value": "shoe repair",
-              "excerpt": "The shoe repair at 1114"
-            },
-            {
-              "id": "el-ha-from",
               "kind": "date",
-              "value": "late 1950s",
-              "excerpt": "from the late fifties"
+              "excerpt": {
+                "start": 34,
+                "end": 55,
+                "text": "from the late fifties"
+              },
+              "status": "confirmed"
             }
           ],
           "sourceType": "community_oral",
@@ -62,59 +64,66 @@
           "language": "en",
           "submission": "submitted",
           "media": [],
+          "choices": {
+            "rightToShare": true,
+            "studentAccess": true,
+            "public": "yes",
+            "location": "keep",
+            "mentionsPeople": "not_sure"
+          },
+          "termsVersion": "fixture-terms-0.1",
           "createdAt": "2026-04-02T17:19:00Z"
         },
         "evidenceRecords": [],
         "translations": [],
         "translationDisputes": [],
         "independentRecordCount": 0,
+        "disputes": [],
         "extensions": [],
         "passover": {
           "sounds_right": 0,
           "dont_know": 0,
           "dont_care": 0
         },
-        "detailStatuses": [
-          {
-            "detail": {
-              "id": "el-ha-trade",
-              "kind": "event",
-              "value": "shoe repair",
-              "excerpt": "The shoe repair at 1114"
+        "detailStatuses": [],
+        "score": {
+          "claimId": "cl-hays-shoes",
+          "score": 1,
+          "terms": [
+            {
+              "family": "content",
+              "name": "base",
+              "value": 1
             },
-            "disputes": [],
-            "extensions": [],
-            "competingValues": [
-              {
-                "value": "shoe repair",
-                "count": 1,
-                "contributorIds": [
-                  "c-tomas"
-                ]
-              }
-            ]
-          },
-          {
-            "detail": {
-              "id": "el-ha-from",
-              "kind": "date",
-              "value": "late 1950s",
-              "excerpt": "from the late fifties"
+            {
+              "family": "content",
+              "name": "evidence attached",
+              "value": 0
             },
-            "disputes": [],
-            "extensions": [],
-            "competingValues": [
-              {
-                "value": "late 1950s",
-                "count": 1,
-                "contributorIds": [
-                  "c-tomas"
-                ]
-              }
-            ]
-          }
-        ],
-        "weight": 2,
+            {
+              "family": "content",
+              "name": "independent support",
+              "value": 0
+            },
+            {
+              "family": "behavior",
+              "name": "sounds right",
+              "value": 0
+            },
+            {
+              "family": "content",
+              "name": "extensions",
+              "value": 0
+            },
+            {
+              "family": "content",
+              "name": "disputes",
+              "value": 0
+            }
+          ],
+          "details": []
+        },
+        "weight": 1,
         "confidence": "single_source"
       }
     ],
@@ -136,9 +145,18 @@
         "language": "en",
         "submission": "submitted",
         "media": [],
+        "choices": {
+          "rightToShare": true,
+          "studentAccess": true,
+          "public": "yes",
+          "location": "keep",
+          "mentionsPeople": "not_sure"
+        },
+        "termsVersion": "fixture-terms-0.1",
         "createdAt": "2026-04-02T17:19:00Z"
       }
     ],
+    "collections": [],
     "standings": [
       {
         "contributorId": "c-tomas",
@@ -156,7 +174,6 @@
         "flagsRaised": 0
       }
     ],
-    "transcripts": [],
     "flags": [],
     "integrity": {
       "totalClaims": 1,
@@ -209,21 +226,23 @@
           "siteId": "site-hays-1114",
           "contributorId": "c-tomas",
           "sourceRecordId": "rec-hays-shoes",
-          "evidenceRecordIds": [],
+          "evidence": [],
+          "relation": "extension",
+          "target": {
+            "recordId": "rec-hays-shoes",
+            "details": []
+          },
           "text": "The shoe repair at 1114 was there from the late fifties until it shut. The family lived above the shop.",
           "sourceLanguage": "en",
-          "details": [
+          "references": [
             {
-              "id": "el-ha-trade",
-              "kind": "event",
-              "value": "shoe repair",
-              "excerpt": "The shoe repair at 1114"
-            },
-            {
-              "id": "el-ha-from",
               "kind": "date",
-              "value": "late 1950s",
-              "excerpt": "from the late fifties"
+              "excerpt": {
+                "start": 34,
+                "end": 55,
+                "text": "from the late fifties"
+              },
+              "status": "confirmed"
             }
           ],
           "sourceType": "community_oral",
@@ -245,59 +264,66 @@
           "language": "en",
           "submission": "submitted",
           "media": [],
+          "choices": {
+            "rightToShare": true,
+            "studentAccess": true,
+            "public": "yes",
+            "location": "keep",
+            "mentionsPeople": "not_sure"
+          },
+          "termsVersion": "fixture-terms-0.1",
           "createdAt": "2026-04-02T17:19:00Z"
         },
         "evidenceRecords": [],
         "translations": [],
         "translationDisputes": [],
         "independentRecordCount": 0,
+        "disputes": [],
         "extensions": [],
         "passover": {
           "sounds_right": 0,
           "dont_know": 0,
           "dont_care": 0
         },
-        "detailStatuses": [
-          {
-            "detail": {
-              "id": "el-ha-trade",
-              "kind": "event",
-              "value": "shoe repair",
-              "excerpt": "The shoe repair at 1114"
+        "detailStatuses": [],
+        "score": {
+          "claimId": "cl-hays-shoes",
+          "score": 1,
+          "terms": [
+            {
+              "family": "content",
+              "name": "base",
+              "value": 1
             },
-            "disputes": [],
-            "extensions": [],
-            "competingValues": [
-              {
-                "value": "shoe repair",
-                "count": 1,
-                "contributorIds": [
-                  "c-tomas"
-                ]
-              }
-            ]
-          },
-          {
-            "detail": {
-              "id": "el-ha-from",
-              "kind": "date",
-              "value": "late 1950s",
-              "excerpt": "from the late fifties"
+            {
+              "family": "content",
+              "name": "evidence attached",
+              "value": 0
             },
-            "disputes": [],
-            "extensions": [],
-            "competingValues": [
-              {
-                "value": "late 1950s",
-                "count": 1,
-                "contributorIds": [
-                  "c-tomas"
-                ]
-              }
-            ]
-          }
-        ],
-        "weight": 2,
+            {
+              "family": "content",
+              "name": "independent support",
+              "value": 0
+            },
+            {
+              "family": "behavior",
+              "name": "sounds right",
+              "value": 0
+            },
+            {
+              "family": "content",
+              "name": "extensions",
+              "value": 0
+            },
+            {
+              "family": "content",
+              "name": "disputes",
+              "value": 0
+            }
+          ],
+          "details": []
+        },
+        "weight": 1,
         "confidence": "single_source"
       }
     ],
@@ -319,9 +345,18 @@
         "language": "en",
         "submission": "submitted",
         "media": [],
+        "choices": {
+          "rightToShare": true,
+          "studentAccess": true,
+          "public": "yes",
+          "location": "keep",
+          "mentionsPeople": "not_sure"
+        },
+        "termsVersion": "fixture-terms-0.1",
         "createdAt": "2026-04-02T17:19:00Z"
       }
     ],
+    "collections": [],
     "standings": [
       {
         "contributorId": "c-tomas",
@@ -339,7 +374,6 @@
         "flagsRaised": 0
       }
     ],
-    "transcripts": [],
     "flags": [],
     "integrity": {
       "totalClaims": 1,
@@ -387,21 +421,23 @@
           "siteId": "site-hays-1114",
           "contributorId": "c-tomas",
           "sourceRecordId": "rec-hays-shoes",
-          "evidenceRecordIds": [],
+          "evidence": [],
+          "relation": "extension",
+          "target": {
+            "recordId": "rec-hays-shoes",
+            "details": []
+          },
           "text": "The shoe repair at 1114 was there from the late fifties until it shut. The family lived above the shop.",
           "sourceLanguage": "en",
-          "details": [
+          "references": [
             {
-              "id": "el-ha-trade",
-              "kind": "event",
-              "value": "shoe repair",
-              "excerpt": "The shoe repair at 1114"
-            },
-            {
-              "id": "el-ha-from",
               "kind": "date",
-              "value": "late 1950s",
-              "excerpt": "from the late fifties"
+              "excerpt": {
+                "start": 34,
+                "end": 55,
+                "text": "from the late fifties"
+              },
+              "status": "confirmed"
             }
           ],
           "sourceType": "community_oral",
@@ -423,59 +459,66 @@
           "language": "en",
           "submission": "submitted",
           "media": [],
+          "choices": {
+            "rightToShare": true,
+            "studentAccess": true,
+            "public": "yes",
+            "location": "keep",
+            "mentionsPeople": "not_sure"
+          },
+          "termsVersion": "fixture-terms-0.1",
           "createdAt": "2026-04-02T17:19:00Z"
         },
         "evidenceRecords": [],
         "translations": [],
         "translationDisputes": [],
         "independentRecordCount": 0,
+        "disputes": [],
         "extensions": [],
         "passover": {
           "sounds_right": 1,
           "dont_know": 0,
           "dont_care": 0
         },
-        "detailStatuses": [
-          {
-            "detail": {
-              "id": "el-ha-trade",
-              "kind": "event",
-              "value": "shoe repair",
-              "excerpt": "The shoe repair at 1114"
+        "detailStatuses": [],
+        "score": {
+          "claimId": "cl-hays-shoes",
+          "score": 1.05,
+          "terms": [
+            {
+              "family": "content",
+              "name": "base",
+              "value": 1
             },
-            "disputes": [],
-            "extensions": [],
-            "competingValues": [
-              {
-                "value": "shoe repair",
-                "count": 1,
-                "contributorIds": [
-                  "c-tomas"
-                ]
-              }
-            ]
-          },
-          {
-            "detail": {
-              "id": "el-ha-from",
-              "kind": "date",
-              "value": "late 1950s",
-              "excerpt": "from the late fifties"
+            {
+              "family": "content",
+              "name": "evidence attached",
+              "value": 0
             },
-            "disputes": [],
-            "extensions": [],
-            "competingValues": [
-              {
-                "value": "late 1950s",
-                "count": 1,
-                "contributorIds": [
-                  "c-tomas"
-                ]
-              }
-            ]
-          }
-        ],
-        "weight": 2.25,
+            {
+              "family": "content",
+              "name": "independent support",
+              "value": 0
+            },
+            {
+              "family": "behavior",
+              "name": "sounds right",
+              "value": 0.05
+            },
+            {
+              "family": "content",
+              "name": "extensions",
+              "value": 0
+            },
+            {
+              "family": "content",
+              "name": "disputes",
+              "value": 0
+            }
+          ],
+          "details": []
+        },
+        "weight": 1.05,
         "confidence": "single_source"
       }
     ],
@@ -504,9 +547,18 @@
         "language": "en",
         "submission": "submitted",
         "media": [],
+        "choices": {
+          "rightToShare": true,
+          "studentAccess": true,
+          "public": "yes",
+          "location": "keep",
+          "mentionsPeople": "not_sure"
+        },
+        "termsVersion": "fixture-terms-0.1",
         "createdAt": "2026-04-02T17:19:00Z"
       }
     ],
+    "collections": [],
     "standings": [
       {
         "contributorId": "c-tomas",
@@ -539,7 +591,6 @@
         "flagsRaised": 0
       }
     ],
-    "transcripts": [],
     "flags": [],
     "integrity": {
       "totalClaims": 1,
@@ -592,21 +643,23 @@
           "siteId": "site-hays-1114",
           "contributorId": "c-tomas",
           "sourceRecordId": "rec-hays-shoes",
-          "evidenceRecordIds": [],
+          "evidence": [],
+          "relation": "extension",
+          "target": {
+            "recordId": "rec-hays-shoes",
+            "details": []
+          },
           "text": "The shoe repair at 1114 was there from the late fifties until it shut. The family lived above the shop.",
           "sourceLanguage": "en",
-          "details": [
+          "references": [
             {
-              "id": "el-ha-trade",
-              "kind": "event",
-              "value": "shoe repair",
-              "excerpt": "The shoe repair at 1114"
-            },
-            {
-              "id": "el-ha-from",
               "kind": "date",
-              "value": "late 1950s",
-              "excerpt": "from the late fifties"
+              "excerpt": {
+                "start": 34,
+                "end": 55,
+                "text": "from the late fifties"
+              },
+              "status": "confirmed"
             }
           ],
           "sourceType": "community_oral",
@@ -628,59 +681,66 @@
           "language": "en",
           "submission": "submitted",
           "media": [],
+          "choices": {
+            "rightToShare": true,
+            "studentAccess": true,
+            "public": "yes",
+            "location": "keep",
+            "mentionsPeople": "not_sure"
+          },
+          "termsVersion": "fixture-terms-0.1",
           "createdAt": "2026-04-02T17:19:00Z"
         },
         "evidenceRecords": [],
         "translations": [],
         "translationDisputes": [],
         "independentRecordCount": 0,
+        "disputes": [],
         "extensions": [],
         "passover": {
           "sounds_right": 1,
           "dont_know": 0,
           "dont_care": 0
         },
-        "detailStatuses": [
-          {
-            "detail": {
-              "id": "el-ha-trade",
-              "kind": "event",
-              "value": "shoe repair",
-              "excerpt": "The shoe repair at 1114"
+        "detailStatuses": [],
+        "score": {
+          "claimId": "cl-hays-shoes",
+          "score": 1.05,
+          "terms": [
+            {
+              "family": "content",
+              "name": "base",
+              "value": 1
             },
-            "disputes": [],
-            "extensions": [],
-            "competingValues": [
-              {
-                "value": "shoe repair",
-                "count": 1,
-                "contributorIds": [
-                  "c-tomas"
-                ]
-              }
-            ]
-          },
-          {
-            "detail": {
-              "id": "el-ha-from",
-              "kind": "date",
-              "value": "late 1950s",
-              "excerpt": "from the late fifties"
+            {
+              "family": "content",
+              "name": "evidence attached",
+              "value": 0
             },
-            "disputes": [],
-            "extensions": [],
-            "competingValues": [
-              {
-                "value": "late 1950s",
-                "count": 1,
-                "contributorIds": [
-                  "c-tomas"
-                ]
-              }
-            ]
-          }
-        ],
-        "weight": 2.25,
+            {
+              "family": "content",
+              "name": "independent support",
+              "value": 0
+            },
+            {
+              "family": "behavior",
+              "name": "sounds right",
+              "value": 0.05
+            },
+            {
+              "family": "content",
+              "name": "extensions",
+              "value": 0
+            },
+            {
+              "family": "content",
+              "name": "disputes",
+              "value": 0
+            }
+          ],
+          "details": []
+        },
+        "weight": 1.05,
         "confidence": "single_source"
       }
     ],
@@ -709,9 +769,18 @@
         "language": "en",
         "submission": "submitted",
         "media": [],
+        "choices": {
+          "rightToShare": true,
+          "studentAccess": true,
+          "public": "yes",
+          "location": "keep",
+          "mentionsPeople": "not_sure"
+        },
+        "termsVersion": "fixture-terms-0.1",
         "createdAt": "2026-04-02T17:19:00Z"
       }
     ],
+    "collections": [],
     "standings": [
       {
         "contributorId": "c-tomas",
@@ -744,7 +813,6 @@
         "flagsRaised": 0
       }
     ],
-    "transcripts": [],
     "flags": [],
     "integrity": {
       "totalClaims": 1,
