@@ -85,7 +85,7 @@ recordsRouter.get("/", async (req, res) => {
  * back from `returning`. The client still sends `createdAt`; whether the server
  * should set that as well is a design question, and it's yours.
  */
-app.post('/submit', async (req, res) => {
+recordsRouter.post('/submit', async (req, res) => {
     const parsed = newSourceRecord.safeParse(req.body);
 
     if (!parsed.success) {
