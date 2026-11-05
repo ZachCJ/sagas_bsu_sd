@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@sagas/contracts": "workspace:*",
+    "mapbox-gl": "^3.33.0",
     "react": "catalog:react19",
     "react-dom": "catalog:react19"
   },

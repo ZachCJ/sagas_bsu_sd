@@ -19,6 +19,8 @@ echo "If Docker isnt working run sudo usermod -aG docker $USER and either sign o
 
 sleep 3
 
+read -p "Enter your Mapbox Key: " mtok
+
 pnpm install
 
 # Ensures enviorment file doesnt already exists.
@@ -27,6 +29,8 @@ if [ -f ".env" ]; then
 else
   echo "Creating .env file from .env.example"
   cp .env.example .env
+  sed -i 's|^# DATABASE_URL="postgresql://sagas:sagas@localhost:5433/sagas_content"$|DATABASE_URL="postgresql://sagas:sagas@localhost:5433/sagas_content"|' .env
+  sed -i "s|^NEXT_PUBLIC_MAPBOX_TOKEN=.*|NEXT_PUBLIC_MAPBOX_TOKEN=\"$mtok\"|" .env
 fi
 
 
@@ -41,6 +45,29 @@ cd apps/capture-api
 
 pnpm db:up        # start Postgres 16 with PostGIS
 pnpm db:verify    # confirm it's actually worki
+
+sleep 2
+
+clear
+
+pnpm migrate
+
+pnpm dev &
+
+cd ..
+
+cd ..
+
+cd apps/capture-web
+
+pnpm --filter @sagas/capture-web dev
+
+clear
+
+cd ..
+
+cd ..
+
 
 
 echo "db:verify prints your Postgres and PostGIS versions and the connection string to paste into .env. If something is wrong it tells you what to do rather than printing a stack trace."

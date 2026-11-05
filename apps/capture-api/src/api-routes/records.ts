@@ -29,6 +29,39 @@ recordsRouter.get("/health", (_req, res) => {
   res.json({ ok: true });
 });
 
+recordsRouter.get("/", async (req, res) => {
+  const { id } = req.query;
+
+  if (typeof id !== "string" || !/^\d+$/.test(id)) {
+    res.status(400).json({ error: "A numeric record id query parameter is required." });
+    return;
+  }
+
+  const { rows } = await pool.query(
+    `select records.id,
+            records.site_id,
+            records.contributor_id,
+            records.note,
+            coalesce(records."text", written_records.file_data) as "text",
+            records.language,
+            records.captured_at,
+            records.submission,
+            records.created_at
+       from records
+       left join written_records on written_records.record_id = records.id
+      where records.id = $1`, //Note to self (Westley): I probably need to change this '$1'. It's most likely a placeholder
+      [id],
+  );
+
+  if (rows.length === 0) {
+    res.status(404).json({ error: "Record not found." });
+    return;
+  }
+
+  res.json(rows[0]);
+  res.status(200).json(rows[0] ? toRecord(rows[0]) : null);
+});
+
 ////////////////////////////
 //  HTTP POST Requests    //
 ////////////////////////////
@@ -124,12 +157,17 @@ function toRecord(row: Record<string, unknown>) {
         id: row.id as string,
         siteId: row.site_id as string,
         contributorId: row.contributor_id as string,
-        text: (row.text as string | null) ?? undefined,
         note: (row.note as string | null) ?? undefined,
+        text: (row.text as string | null) ?? undefined,
         language: (row.language as string | null) ?? undefined,
         capturedAt: date(row.captured_at),
-        media: [],
         submission: row.submission as string,
+        media: [],
+        link: (row.link as Record<string, unknown> | null) ?? undefined,
+        parent: (row.parent as Record<string, unknown> | null) ?? undefined,
+        collectionId: (row.collection_id as string | null) ?? undefined,
+        choices: row.choices as Record<string, unknown>,
+        termsVersion: row.terms_version as string,
         createdAt: date(row.created_at),
     };
 }

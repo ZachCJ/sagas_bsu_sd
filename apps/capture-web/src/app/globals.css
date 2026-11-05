@@ -10,6 +10,12 @@ main {
   margin: 3rem auto;
 }
 
+.mapbox-map {
+  width: 160%;
+  height: 600px;
+  left: -30%;
+}
+
 .transcriptionbox {
   border: 3px solid #0d0e0d;
   border-radius: 1%;

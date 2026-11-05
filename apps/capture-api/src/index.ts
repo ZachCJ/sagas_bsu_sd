@@ -59,36 +59,6 @@ app.get("/health", (_req, res) => {
 });
 
 /**
- * A database row back into the contract's shape.
- *
- * Postgres hands back `site_id`, nulls and dates as Date objects. The contract
- * is the agreed shape of a record, so the API answers in it and the row is
- * translated on the way out. `media` is empty because this endpoint
- * only takes written records so far; when files arrive, they get read from
- * their own table here.
- */
-function toRecord(row: Record<string, unknown>) {
-  const date = (v: unknown) => (v instanceof Date ? v.toISOString() : (v as string | null) ?? undefined);
-  return {
-    id: row.id as string,
-    siteId: row.site_id as string,
-    contributorId: row.contributor_id as string,
-    note: (row.note as string | null) ?? undefined,
-    text: (row.text as string | null) ?? undefined,
-    language: (row.language as string | null) ?? undefined,
-    capturedAt: date(row.captured_at),
-    submission: row.submission as string,
-    media: [],
-    link: (row.link as Record<string, unknown> | null) ?? undefined,
-    parent: (row.parent as Record<string, unknown> | null) ?? undefined,
-    collectionId: (row.collection_id as string | null) ?? undefined,
-    choices: row.choices as Record<string, unknown>,
-    termsVersion: row.terms_version as string,
-    createdAt: date(row.created_at),
-  };
-}
-
-/**
  * Anything a handler throws lands here.
  *
  * Express 5 forwards a rejected promise from an async handler to this
