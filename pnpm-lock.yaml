@@ -121,6 +121,9 @@ importers:
       '@sagas/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      mapbox-gl:
+        specifier: ^3.33.0
+        version: 3.34.2
       react:
         specifier: catalog:react19
         version: 19.0.0
@@ -2347,6 +2350,9 @@ packages:
   mapbox-gl@3.28.1:
     resolution: {integrity: sha512-f8bCHFzZ51bKig7rnD7e08aoFLOV3MNFZduspZ4lgOgiaNVp9sw4NSWcgo3IWTyekYKKXjiICD2BP2o4DiYfxw==}
 
+  mapbox-gl@3.34.2:
+    resolution: {integrity: sha512-SfuzpqjokSjv4C9/JEjxAfqVHY37B7Kky/AOFpc+9D0Sx0KuIoV3keSlvvuHuM/jxw84iQ/Nh7yIK1VxuDBBHA==}
+
   math-intrinsics@1.1.0:
     resolution: {integrity: sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==}
     engines: {node: '>= 0.4'}
@@ -4303,8 +4309,7 @@ snapshots:
 
   depd@2.0.0: {}
 
-  detect-libc@2.1.2:
-    optional: true
+  detect-libc@2.1.2: {}
 
   didyoumean@1.2.2: {}
 
@@ -5126,6 +5131,8 @@ snapshots:
       '@jridgewell/sourcemap-codec': 1.5.5
 
   mapbox-gl@3.28.1: {}
+
+  mapbox-gl@3.34.2: {}
 
   math-intrinsics@1.1.0: {}
 
