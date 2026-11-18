@@ -609,18 +609,22 @@ export const newSourceRecord = sourceRecordFields
 export type NewSourceRecord = z.infer<typeof newSourceRecord>;
 
 /**
- * The records one profile handed over together, kept whole.
+ * A profile's collection: the records it has handed over, kept together so
+ * every record can say where it came from.
  *
- * Archives judge a record partly by what it arrived with and why it was kept,
- * and pooling records by place loses that. So a place points at records and
- * never takes them over, and each record keeps its collection wherever it's
- * shown.
+ * Archives judge a record partly by where it came from, and pooling records by
+ * place loses that. So a place points at records and never takes them over, and
+ * each record keeps its collection wherever it's shown.
  *
  * A collection belongs to a profile, which can be a guest, and never to a named
  * person. It records what a profile did and says nothing about who they are.
- * What else a collection carries (who originally made or gathered the records,
- * why they were kept) is open; for now that lives in the contributor's own
- * words in `note`. See DESIGN-QUESTIONS, "What does a collection carry?".
+ *
+ * Not in the contract yet: a collection is per profile, a copy of someone else's
+ * record is marked as a copy and keeps its origin, and related media (the same
+ * file at several places, a clip of a longer recording) are linked, with
+ * `parent` saying which came from which. Until then, the shape below is
+ * unchanged. Contract 2.4.0 to 2.7.0 described a collection as one hand-over,
+ * which was wrong.
  */
 export const collection = z.object({
   id: z.string(),
@@ -1302,11 +1306,16 @@ export const composition = z
   });
 export type Composition = z.infer<typeof composition>;
 
-/** Everything known about one place, as of one moment. */
+/**
+ * Everything known about one place, as of a time.
+ *
+ * Every claim, record and passover carries its own time, so "the place as of a time" is
+ * worked out from them, and nothing stores one snapshot per named moment. The fixtures'
+ * t0 to t3 are moments to test against. Their files carry each moment's id and label
+ * beside the state, and those aren't part of the contract.
+ */
 export const graphState = z.object({
-  stateId: z.string(),
-  label: z.string(),
-  /** Every contribution up to and including this moment is reflected here. */
+  /** Every contribution up to and including this time is reflected here. */
   asOf: z.string(),
   site,
   claims: z.array(claimState),

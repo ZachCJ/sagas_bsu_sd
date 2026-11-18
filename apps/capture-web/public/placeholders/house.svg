@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="240" viewBox="0 0 320 240" role="img" aria-label="Placeholder: house with a blue door">
+  <rect width="320" height="240" fill="#e3efe3"/>
+  <polygon points="80,110 160,50 240,110" fill="#6b4f3a"/>
+  <rect x="95" y="110" width="130" height="110" fill="#efe3c8"/>
+  <rect x="145" y="150" width="30" height="70" fill="#2f5fa8"/>
+  <rect x="105" y="130" width="28" height="28" fill="#a8c4de"/>
+  <rect x="187" y="130" width="28" height="28" fill="#a8c4de"/>
+  <text x="160" y="30" font-family="system-ui, sans-serif" font-size="16" text-anchor="middle" fill="#2f4a2f">Placeholder photo</text>
+</svg>

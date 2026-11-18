@@ -8,7 +8,7 @@
 -- When the contract and this table disagree, the contract is right.
 
 create table if not exists records (
-  id              text primary key, -- generated always as identity primary key,
+  id              text primary key,
   site_id         text not null,
   contributor_id  text not null,
 
@@ -40,7 +40,7 @@ create type written_record_type as enum (
 );
 
 create table if not exists written_records (
-  record_id bigint primary key references records(id) on delete cascade,
+  record_id text primary key references records(id) on delete cascade,
   content_type written_record_type not null,
   --original_filename text not null,
   -- For our current iteration, store the written record as a text string. 
@@ -55,7 +55,7 @@ create type image_record_type as enum (
 );
 
 create table if not exists image_records (
-  record_id bigint primary key references records(id) on delete cascade,
+  record_id text primary key references records(id) on delete cascade,
   content_type image_record_type not null,
   original_filename text not null
 );
@@ -67,7 +67,7 @@ create type audio_record_type as enum (
 );
 
 create table if not exists audio_records (
-  record_id bigint primary key references records(id) on delete cascade,
+  record_id text primary key references records(id) on delete cascade,
   content_type audio_record_type not null,
   original_filename text not null
 );
@@ -79,7 +79,7 @@ create type video_record_type as enum (
 );
 
 create table if not exists video_records (
-  record_id bigint primary key references records(id) on delete cascade,
+  record_id text primary key references records(id) on delete cascade,
   content_type video_record_type not null,
   original_filename text not null
 );

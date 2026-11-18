@@ -29,3 +29,178 @@ main {
 .transbut:hover {
   background-color: #00ff11;
 }
+
+/* ---------- Story map ---------- */
+
+.story-map__canvas {
+  width: 100%;
+  height: 480px;
+  border-radius: 6px;
+}
+
+.story-map__side {
+  margin-top: 1rem;
+}
+
+.story-map__status {
+  margin: 0 0 0.5rem;
+  color: #555;
+}
+
+.story-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.25rem;
+}
+
+.story-list__link {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  color: #222;
+  text-decoration: none;
+}
+
+.story-list__link:hover,
+.story-list__link.is-active {
+  border-color: #b5462f;
+  background: #fbefec;
+}
+
+/* Visible focus ring for keyboard users. */
+.story-list__link:focus-visible {
+  outline: 3px solid #1a5fb4;
+  outline-offset: 2px;
+}
+
+.story-list__count {
+  color: #555;
+  white-space: nowrap;
+}
+
+.story-popup {
+  font-family: system-ui, sans-serif;
+  color: #222;
+}
+
+.story-popup__title {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.story-popup__meta,
+.story-popup__empty,
+.story-popup__hint {
+  margin: 0.25rem 0;
+  font-size: 0.85rem;
+}
+
+.story-popup__hint {
+  color: #555;
+}
+
+.story-popup__images {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.story-popup__images img {
+  width: 120px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 3px;
+}
+
+/* ---------- Site records page ---------- */
+
+.site-page__meta {
+  color: #555;
+}
+
+.site-records {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 1.5rem;
+}
+
+.site-record {
+  border-top: 1px solid #ddd;
+  padding-top: 1rem;
+}
+
+.site-record__text {
+  font-size: 1.1rem;
+}
+
+.site-record__images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.site-record__images img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+.site-record__dates {
+  color: #555;
+  font-size: 0.9rem;
+}
+
+/* Read by screen readers, not shown on screen. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Records waiting for a translation, and the form for giving one. */
+.translation-list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 1rem;
+}
+.translation-item {
+  border-top: 1px solid #ddd;
+  padding-top: 1rem;
+}
+.translation-item__language {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+.translation-item__text {
+  font-size: 1.1rem;
+  white-space: pre-wrap;
+}
+.translation-item__meta {
+  color: #555;
+  font-size: 0.9rem;
+}
+.translation-form {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+.translation-form textarea {
+  width: 100%;
+  max-width: 48rem;
+  font: inherit;
+}
+.translation-form button {
+  justify-self: start;
+}

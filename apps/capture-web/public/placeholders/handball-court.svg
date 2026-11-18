@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="240" viewBox="0 0 320 240" role="img" aria-label="Placeholder: handball court wall">
+  <rect width="320" height="240" fill="#f0ead8"/>
+  <rect x="30" y="50" width="260" height="140" fill="#c9b99a"/>
+  <line x1="30" y1="120" x2="290" y2="120" stroke="#8a2f2f" stroke-width="4"/>
+  <rect x="20" y="190" width="280" height="40" fill="#9a9a8a"/>
+  <circle cx="220" cy="90" r="8" fill="#ffffff" stroke="#555"/>
+  <text x="160" y="30" font-family="system-ui, sans-serif" font-size="16" text-anchor="middle" fill="#4a4535">Placeholder photo</text>
+</svg>

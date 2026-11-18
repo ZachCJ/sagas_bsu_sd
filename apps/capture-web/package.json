@@ -12,13 +12,15 @@
     "start": "vite preview --host 0.0.0.0 --port 3002",
     "clean": "git clean -xdf .cache .turbo node_modules",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "vitest run"
   },
   "dependencies": {
     "@sagas/contracts": "workspace:*",
     "mapbox-gl": "^3.33.0",
     "react": "catalog:react19",
-    "react-dom": "catalog:react19"
+    "react-dom": "catalog:react19",
+    "react-router": "7.18.5"
   },
   "devDependencies": {
     "@sagas/eslint-config": "workspace:*",
@@ -31,7 +33,8 @@
     "eslint": "catalog:",
     "prettier": "catalog:",
     "typescript": "catalog:",
-    "vite": "^8.3.4"
+    "vite": "^8.3.4",
+    "vitest": "3.2.6"
   },
   "prettier": "@sagas/prettier-config"
 }

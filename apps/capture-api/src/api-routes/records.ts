@@ -1,7 +1,7 @@
 import express from "express";
 
 const recordsRouter = express.Router();
-import { newSourceRecord } from "@sagas/contracts";
+import { languageCode, newSourceRecord } from "@sagas/contracts";
 import { pool } from "../db";
 import { randomUUID } from 'node:crypto';
 
@@ -21,6 +21,18 @@ recordsRouter.use("/video", recordsVideoRouter);
 recordsRouter.use("/audio", recordsAudioRouter);
 recordsRouter.use("/photo", recordsPhotoRouter);
 
+/** Record ids are UUIDs (012_uuid_ids.sql). Anything else cannot name a record. */
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * What counts as "has content to translate". Written records only for now:
+ * the record's own text, or the text of a written file. Audio and photo records
+ * get added here later, so the rule lives in one place.
+ *
+ * A constant SQL fragment, never built from user input.
+ */
+const WRITTEN_CONTENT = 'coalesce(records."text", written_records.file_data)';
+
 ////////////////////////////
 //  HTTP GET Requests     //
 ////////////////////////////
@@ -29,11 +41,88 @@ recordsRouter.get("/health", (_req, res) => {
   res.json({ ok: true });
 });
 
+/**
+ * Records waiting for an English translation, newest first.
+ *
+ * Derived, not stored. A record is pending when it is a non-English written
+ * record, is not itself a transcript or translation, is not a draft, and no
+ * record has `parent.role = 'translation'` pointing at it. Any translation
+ * clears it from the list.
+ *
+ * Optional `?language=eu|es|fr` narrows the list. `en` is rejected, because an
+ * English record is never pending.
+ *
+ * Registered before the id handler below so the two never get confused.
+ */
+recordsRouter.get("/pending-translation", async (req, res) => {
+  const { language } = req.query;
+  let languageFilter: string | null = null;
+
+  if (language !== undefined) {
+    const parsedLanguage = languageCode.safeParse(language);
+    if (!parsedLanguage.success || parsedLanguage.data === "en") {
+      const allowed = languageCode.options.filter((code) => code !== "en").join(", ");
+      res.status(400).json({ error: `language must be one of: ${allowed}.` });
+      return;
+    }
+    languageFilter = parsedLanguage.data;
+  }
+
+  const { rows } = await pool.query<Record<string, unknown>>(
+    `select records.id,
+            records.site_id,
+            records.contributor_id,
+            records.note,
+            ${WRITTEN_CONTENT} as "text",
+            records.language,
+            records.captured_at,
+            records.created_at
+       from records
+       left join written_records on written_records.record_id = records.id
+      where records.language is not null
+        and records.language <> 'en'
+        and records.parent is null
+        and records.submission <> 'draft'
+        and ${WRITTEN_CONTENT} is not null
+        and ($1::text is null or records.language = $1)
+        and not exists (
+              select 1
+                from records as translations
+               where translations.parent->>'role' = 'translation'
+                 and translations.parent->>'recordId' = records.id::text
+            )
+      order by records.created_at desc`,
+    [languageFilter],
+  );
+
+  res.status(200).json(rows.map(toPendingRecord));
+});
+
+/**
+ * One record, by `?id=`. Ids are UUIDs (012_uuid_ids.sql), so a missing id or
+ * one that isn't a UUID can't name a record and answers 404.
+ *
+ * The new "choices" variable must be in the format:
+ *  "choices": {
+ *       "rightToShare": true -,
+ *       "studentAccess": true or false,
+ *       "public": 'yes' | 'later' | 'no',
+ *       "location" 'keep' | 'distance_only' | 'remove',
+ *       "mentionsPeople": 'no' | 'living' | 'died' | 'not_sure',
+ *   }
+ *
+ *   in a json form.
+ *
+ * The new "termsVerions" field must be in the format:
+ * "termsVersion": "#"
+ *
+ * Where '#' is a digit in a json
+ */
 recordsRouter.get("/", async (req, res) => {
   const { id } = req.query;
 
-  if (typeof id !== "string" || !/^\d+$/.test(id)) {
-    res.status(400).json({ error: "A numeric record id query parameter is required." });
+  if (typeof id !== "string" || !UUID_PATTERN.test(id)) {
+    res.status(404).json({ error: "Record not found." });
     return;
   }
 
@@ -46,6 +135,11 @@ recordsRouter.get("/", async (req, res) => {
             records.language,
             records.captured_at,
             records.submission,
+            records.choices,
+            records.terms_version,
+            records.link,
+            records.parent,
+            records.collection_id,
             records.created_at
        from records
        left join written_records on written_records.record_id = records.id
@@ -58,7 +152,6 @@ recordsRouter.get("/", async (req, res) => {
     return;
   }
 
-  res.json(rows[0]);
   res.status(200).json(rows[0] ? toRecord(rows[0]) : null);
 });
 
@@ -94,6 +187,30 @@ recordsRouter.post('/submit', async (req, res) => {
     }
 
     const record = parsed.data;
+
+    // A translation needs a language, and a record it translates that exists.
+    // A `claimId` is stored as it arrives, because claims live in another
+    // layer's database.
+    if (record.parent?.role === 'translation') {
+        if (!record.language) {
+            res.status(400).json({ error: 'A translation needs a language.' });
+            return;
+        }
+
+        const parentId = record.parent.recordId;
+        if (parentId !== undefined) {
+            const missingParent = { error: 'The record being translated does not exist.' };
+            if (!UUID_PATTERN.test(parentId)) {
+                res.status(400).json(missingParent);
+                return;
+            }
+            const existing = await pool.query('select 1 from records where id = $1', [parentId]);
+            if (existing.rows.length === 0) {
+                res.status(400).json(missingParent);
+                return;
+            }
+        }
+    }
 
     const { rows } = await pool.query<Record<string, unknown>>(
         `insert into records
@@ -168,6 +285,24 @@ function toRecord(row: Record<string, unknown>) {
         collectionId: (row.collection_id as string | null) ?? undefined,
         choices: row.choices as Record<string, unknown>,
         termsVersion: row.terms_version as string,
+        createdAt: date(row.created_at),
+    };
+}
+
+/**
+ * A row from the pending-translation query, in the contract's field names.
+ * Only what the list needs, plus `capturedAt` when it is known.
+ */
+function toPendingRecord(row: Record<string, unknown>) {
+    const date = (v: unknown) => (v instanceof Date ? v.toISOString() : (v as string | null) ?? undefined);
+    return {
+        id: String(row.id),
+        siteId: row.site_id as string,
+        contributorId: row.contributor_id as string,
+        language: row.language as string,
+        text: (row.text as string | null) ?? undefined,
+        note: (row.note as string | null) ?? undefined,
+        capturedAt: date(row.captured_at),
         createdAt: date(row.created_at),
     };
 }
