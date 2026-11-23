@@ -41,6 +41,16 @@ describe('POST /score', () => {
     expect(contested).toBe(disputed);
   });
 
+  it('gives every claim and detail a score that is its terms added up', async () => {
+    const graph = scoringGraph.parse(example('corner-shop-graph.json'));
+    const result = scoringResult.parse(await (await post('/score', graph)).json());
+    const total = (terms: { value: number }[]) => terms.reduce((s, t) => s + t.value, 0);
+    for (const c of result.claims) {
+      expect(c.score).toBeCloseTo(total(c.terms), 9);
+      for (const d of c.details) expect(d.score).toBeCloseTo(total(d.terms), 9);
+    }
+  });
+
   it('refuses a graph that fails the contract, with a 400', async () => {
     expect((await post('/score', { siteId: 'x' })).status).toBe(400);
   });

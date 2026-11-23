@@ -65,7 +65,8 @@ const t = (family: ScoreTerm['family'], name: string, value: number): ScoreTerm 
   value,
 });
 
-const sum = (terms: ScoreTerm[]) => Math.max(0.25, terms.reduce((s, x) => s + x.value, 0));
+// A score is its terms added up (contract 2.7.2), with no floor.
+const sum = (terms: ScoreTerm[]) => terms.reduce((s, x) => s + x.value, 0);
 
 /**
  * An invented score for every claim and detail in a graph, in the shape a real scorer returns.
