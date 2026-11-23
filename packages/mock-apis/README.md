@@ -19,6 +19,8 @@ Next.js route handler, on Cloudflare Workers, and on its own with Node.
 | `GET /sites?q=…` | Places whose name or other names contain the text. Never matches an address |
 | `GET /sites/:id` | One place, or 404 |
 
+None of the sites routes return an address. "Addresses stay private" below says why.
+
 It passes the same rules the real API has to pass: `src/capture.test.ts` runs
 `@sagas/fixtures/capture/rules` against it over HTTP.
 
@@ -92,8 +94,9 @@ pnpm --filter @sagas/mock-apis serve:graph
 - Matches between claims. `POST /score` always returns an empty list.
 - Anything persistent. That's the point of a mock.
 
-## Something to know before mounting it on a public site
+## Addresses stay private
 
-`GET /sites` returns each place in the contract's shape, and that includes `address`. The pages
-never show an address (M8), but a mock mounted on a public site would hand it to anyone who asks.
-We made the fixture places up, so this matters most once real places are involved.
+The sites routes never return a place's `address`. The mock still keeps it. The sponsor decided on
+12 November that Sagas can store an address but never shows one, and an API anyone can call shows
+whatever it returns. That's the one place the mock differs from the contract's `site`, which still requires
+`address` until the location update.

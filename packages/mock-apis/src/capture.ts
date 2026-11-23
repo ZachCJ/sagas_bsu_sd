@@ -23,6 +23,14 @@ type StoredRecord = { id: string; parent?: { role: string; recordId?: string } }
 
 const newSite = site.omit({ id: true, slug: true });
 
+/**
+ * A place as the mock hands it out: everything except the address. The sponsor decided on 12
+ * November that an address can be stored and is never shown, and an API anyone can call shows
+ * whatever it returns. The contract's `site` still requires `address`; changing that waits for the
+ * location update, so this is the one place the mock knowingly differs from the contract.
+ */
+const shown = ({ address: _address, ...rest }: Site) => rest;
+
 export interface CaptureMockOptions {
   /** Where the mock is mounted, for example `/api/mock/capture`. */
   basePath?: string;
@@ -81,7 +89,7 @@ export function createCaptureMock(options: CaptureMockOptions = {}): Handler {
         slug: uniqueSlug(parsed.data.name, sites),
       };
       sites.set(created.id, created);
-      return json(201, created);
+      return json(201, shown(created));
     })
 
     // Matches the name and other names only, never the address (sponsor, 18 November): a search
@@ -89,16 +97,15 @@ export function createCaptureMock(options: CaptureMockOptions = {}): Handler {
     .on('GET', '/sites', (_request, _params, url) => {
       const q = url.searchParams.get('q')?.trim().toLowerCase();
       const all = [...sites.values()];
-      if (!q) return json(200, all);
-      return json(
-        200,
-        all.filter((s) => [s.name, ...s.aka].some((n) => n.toLowerCase().includes(q))),
-      );
+      const matching = q
+        ? all.filter((s) => [s.name, ...s.aka].some((n) => n.toLowerCase().includes(q)))
+        : all;
+      return json(200, matching.map(shown));
     })
 
     .on('GET', '/sites/:id', (_request, { id }) => {
       const found = sites.get(id ?? '');
-      return found ? json(200, found) : json(404, { error: `No site ${id}.` });
+      return found ? json(200, shown(found)) : json(404, { error: `No site ${id}.` });
     })
 
     .handler();

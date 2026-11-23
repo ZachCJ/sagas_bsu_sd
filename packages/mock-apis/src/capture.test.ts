@@ -32,12 +32,15 @@ const postJson = (path: string, body: unknown) =>
   });
 
 describe('the sites routes (C13)', () => {
-  it('starts with every fixture place, each in the contract shape', async () => {
+  it('starts with every fixture place, each in the contract shape apart from the address', async () => {
     const res = await call('/sites');
     expect(res.status).toBe(200);
-    const sites = (await res.json()) as unknown[];
+    const sites = (await res.json()) as Record<string, unknown>[];
     expect(sites.length).toBeGreaterThan(1);
-    for (const s of sites) expect(site.safeParse(s).success).toBe(true);
+    for (const s of sites) {
+      expect(site.omit({ address: true }).strict().safeParse(s).success).toBe(true);
+      expect(s).not.toHaveProperty('address');
+    }
   });
 
   it('finds a place by another name, ignoring case', async () => {
@@ -73,8 +76,10 @@ describe('the sites routes (C13)', () => {
       )
     ).json()) as { id: string; slug: string };
     expect(created.slug).toBe('the-corner-shop');
+    expect(created).not.toHaveProperty('address');
     const fetched = await mock(new Request(`http://mock/sites/${created.id}`));
     expect(fetched.status).toBe(200);
+    expect(await fetched.json()).not.toHaveProperty('address');
   });
 
   it('refuses a place that fails the contract, with a 400', async () => {
