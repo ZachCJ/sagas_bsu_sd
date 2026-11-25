@@ -3,7 +3,6 @@ import express from "express";
 const recordsRouter = express.Router();
 import { languageCode, newSourceRecord } from "@sagas/contracts";
 import { pool } from "../db";
-import { randomUUID } from 'node:crypto';
 
 //Subroutes of Records API
 import { recordsVideoRouter } from "./records-video";
@@ -126,7 +125,7 @@ recordsRouter.get("/", async (req, res) => {
     return;
   }
 
-  const { rows } = await pool.query(
+  const { rows } = await pool.query<Record<string, unknown>>(
     `select records.id,
             records.site_id,
             records.contributor_id,

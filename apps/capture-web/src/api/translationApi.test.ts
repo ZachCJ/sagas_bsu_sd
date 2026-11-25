@@ -11,7 +11,7 @@ import {
   createTranslationClient,
 } from "./translationApi";
 
-type Answer = { status: number; body?: unknown };
+interface Answer { status: number; body?: unknown }
 
 /** A fake fetch that gives the answers in order, one per call. */
 function fakeFetch(...answers: Answer[]) {
@@ -166,7 +166,8 @@ describe("translation client", () => {
     expect(calledUrl(fetchImpl)).toBe("/api/records/submit");
     const init = fetchImpl.mock.calls[0]?.[1];
     expect(init?.method).toBe("POST");
-    const body = JSON.parse(String(init?.body)) as Record<string, unknown>;
+    expect(typeof init?.body).toBe("string");
+    const body = JSON.parse(init?.body as string) as Record<string, unknown>;
     expect(body).toMatchObject({
       siteId: "site-001",
       text: "My grandfather lived here.",

@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
 import type { SubmitEvent } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router";
 
 import type { TranslatableRecord, TranslationApi } from "../api/translationApi";
@@ -22,7 +22,7 @@ interface TranslationPageProps {
 function returnPathFrom(state: unknown): string {
   const listSearch =
     typeof state === "object" && state !== null && "listSearch" in state
-      ? (state as { listSearch: unknown }).listSearch
+      ? state.listSearch
       : undefined;
   return typeof listSearch === "string" && listSearch
     ? `/translations?${listSearch}`

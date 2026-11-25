@@ -1,9 +1,14 @@
 //bring routing from react router.
 import { Link, Route, Routes } from "react-router";
 
+import AudioDemoPage from "../features/audio/AudioDemoPage";
+import AudioListPage from "../features/audio/AudioListPage";
+import CreateRecordPage from "./CreateRecordPage";
 import Homepage from "./homepage";
-import SiteRecordsPage from "./SiteRecordsPage";
 import PendingTranslationsPage from "./PendingTranslationsPage";
+import RecordPage from "./RecordPage";
+import SearchPage from "./SearchPage";
+import SiteRecordsPage from "./SiteRecordsPage";
 import TranslationPage from "./TranslationPage";
 
 /**
@@ -26,6 +31,14 @@ export default function App() {
       <Route path="/sites/:siteId" element={<SiteRecordsPage />} />
       <Route path="/translations" element={<PendingTranslationsPage />} />
       <Route path="/translations/:recordId" element={<TranslationPage />} />
+      {/*list of sample recordings (audio demo, 74)  */}
+      <Route path="/audio-demo" element={<AudioListPage />} />
+      {/* Play one recording */}
+      <Route path="/audio-demo/:sampleId" element={<AudioDemoPage />} />
+      <Route path="/records/new" element={<CreateRecordPage />} />
+      <Route path="/records/:id" element={<RecordPage />} />
+      <Route path="/search" element={<SearchPage />} />
+
       <Route
         // Catches every other address and shows "Page not found"
         path="*"
