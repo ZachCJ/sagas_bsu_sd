@@ -5,7 +5,6 @@
   //Controls how typescript checks and hanldes code
   "compilerOptions": {
     "jsx": "react-jsx",
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     },

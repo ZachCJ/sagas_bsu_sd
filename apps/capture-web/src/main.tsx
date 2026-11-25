@@ -8,7 +8,6 @@ import "mapbox-gl/dist/mapbox-gl.css";
 
 import "./app/globals.css";
 
-//App holds the routes; the homepage is now the "/" route. See src/app/App.tsx.
 import App from "./app/App";
 
 const rootElement = document.getElementById("root");
@@ -19,6 +18,7 @@ if (!rootElement) {
 
 //Starts react app in HTML element whose id is root.
 createRoot(rootElement).render(
+  // <StrictMode>    <RouterProvider router={router} />
   <StrictMode>
     <BrowserRouter>
       <App />
